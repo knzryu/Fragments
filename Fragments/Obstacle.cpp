@@ -1,8 +1,13 @@
 #include "DxLib.h"
 #include "Obstacle.h"
 
+
+
+//áŠQ•¨‚Ì•`‰æŠÖ”
 void Obstacle::Draw()
 {
+    //SetUseLighting(FALSE);
+
     DrawCube3D(
         VGet(minX, minY, minZ),
         VGet(maxX, maxY, maxZ),

@@ -7,66 +7,10 @@
 #include"Bullet.h"
 #include"ObstacleManager.h"
 
-//障害物生成関数
-void ObstacleManager::SpawnObstacle(float spawnZ)
-{
-    // 生成するレーンをランダムに決める
-    //GetRandは０、１、２のいずれかをランダムに返す
-    int lane = GetRand(2);
-
-    float minX;
-    float maxX;
-
-    if (lane == 0)
-    {
-        minX = -5.0f;
-        maxX = -3.0f;
-    }
-    else if (lane == 1)
-    {
-        minX = -1.0f;
-        maxX = 1.0f;
-    }
-    else
-    {
-        minX = 3.0f;
-        maxX = 5.0f;
-    }
-
-    // obstaclesに障害物を一個追加する
-    obstacles.push_back(
-        {
-            minX, maxX,           //X座標の範囲
-            0.0f, 3.0f,           //Y座標の範囲
-            spawnZ, spawnZ + 2.0f //Z座標の範囲
-        }
-    );
-}
-
-//障害物削除関数
-void ObstacleManager::RemovePassedObstacles(
-    std::vector<Obstacle>& obstacles,
-    float playerZ)
-{
-    // 障害物の個数をint型に変換し、最後のインデックスを求める
-    for (int i = static_cast<int>(obstacles.size()) - 1;
-        i >= 0;
-        i--)
-    {
-        // プレイヤーの後方に離れた障害物を削除する条件式
-        if (obstacles[i].maxZ < playerZ - 5.0f)
-        {
-            //eraseは指定した位置の要素を削除する関数
-            //beginはvectorの先頭要素を指す位置を取得するための関数
-            obstacles.erase(obstacles.begin() + i);
-        }
-    }
-}
-
 // ゲームの状態をリセットする関数
 void ResetGame(
     Player& player,
-    std::vector<Obstacle>& obstacles,
+	ObstacleManager& obstacleManager,
     float& nextObstacleZ,
     bool& gameOver,
     bool& isDashing,
@@ -85,45 +29,8 @@ void ResetGame(
     dashTimer = 0.0f;
     dashDirection = 0;
 
-    // 障害物をすべて削除
-    obstacles.clear();
-
-    // 初期障害物を配置
-    obstacles.push_back(
-        { -1.0f, 1.0f, 0.0f, 3.0f, 20.0f, 22.0f }
-    );
-
-    obstacles.push_back(
-        { 3.0f, 5.0f, 0.0f, 3.0f, 30.0f, 32.0f }
-    );
-
-    obstacles.push_back(
-        { -5.0f, -3.0f, 0.0f, 3.0f, 40.0f, 42.0f }
-    );
-
-    // 初期障害物のレーンをランダムに変更
-    for (int i = 0;
-        i < static_cast<int>(obstacles.size());
-        i++)
-    {
-        int lane = GetRand(2);
-
-        if (lane == 0)
-        {
-            obstacles[i].minX = -5.0f;
-            obstacles[i].maxX = -3.0f;
-        }
-        else if (lane == 1)
-        {
-            obstacles[i].minX = -1.0f;
-            obstacles[i].maxX = 1.0f;
-        }
-        else
-        {
-            obstacles[i].minX = 3.0f;
-            obstacles[i].maxX = 5.0f;
-        }
-    }
+	// 障害物を初期状態に戻す
+	obstacleManager.Reset();
 
     // 次の障害物の生成位置を初期化
     nextObstacleZ = 50.0f;
@@ -224,7 +131,7 @@ int WINAPI WinMain(
     float nextObstacleZ = 50.0f;
 
     // 複数の障害物をまとめて管理する入れ物を用意
-    std::vector<Obstacle> obstacles;
+    ObstacleManager obstacleManager;
 
     //弾配列
     std::vector<Bullet> bullets;
@@ -236,7 +143,7 @@ int WINAPI WinMain(
 
     ResetGame(
         player,
-        obstacles,
+		obstacleManager,
         nextObstacleZ,
         gameOver,
         isDashing,
@@ -268,12 +175,12 @@ int WINAPI WinMain(
         player.MoveForward(deltaTime);
 
         // プレイヤーの後方にある障害物を削除する
-        RemovePassedObstacles(obstacles, player.z);
+        obstacleManager.RemovePassedObstacles( player.z);
 
         // 次の障害物まで20以内になったら生成する
         if (player.z + 20.0f >= nextObstacleZ)
         {
-            SpawnObstacle(obstacles, nextObstacleZ);
+            obstacleManager.SpawnObstacle( nextObstacleZ);
 
             // 次の生成位置を更新する
             nextObstacleZ += obstacleSpacing;
@@ -439,15 +346,18 @@ int WINAPI WinMain(
         float playerMaxZ = player.z + 0.5f;
 
         // すべての障害物をチェック
-        for (int i = 0; i < static_cast<int>(obstacles.size()); i++)
+		for (int i = 0; i < obstacleManager.GetCount(); i++)
         {
+			//i番目の障害物を取得
+			Obstacle& obstacle = obstacleManager.GetObstacle(i);
+
             bool isColliding = IsCollidingAABB(
                 playerMinX, playerMaxX,
                 playerMinY, playerMaxY,
                 playerMinZ, playerMaxZ,
-                obstacles[i].minX, obstacles[i].maxX,
-                obstacles[i].minY, obstacles[i].maxY,
-                obstacles[i].minZ, obstacles[i].maxZ
+                obstacle.minX, obstacle.maxX,
+                obstacle.minY, obstacle.maxY,
+                obstacle.minZ, obstacle.maxZ
             );
 
             if (isColliding)
@@ -563,10 +473,7 @@ int WINAPI WinMain(
         }
 
         //障害物を配置
-        for (int i = 0; i < static_cast<int>(obstacles.size()); i++)
-        {
-            obstacles[i].Draw();
-        }
+		obstacleManager.DrawAll();
         
 
         // 地面を描画する
@@ -683,7 +590,7 @@ int WINAPI WinMain(
             // それ以外のキーなら再スタート
             ResetGame(
                 player,
-                obstacles,
+				obstacleManager,
                 nextObstacleZ,
                 gameOver,
                 isDashing,
