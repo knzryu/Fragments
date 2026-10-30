@@ -53,43 +53,6 @@ void ObstacleManager::Reset()
 {
     // 障害物をすべて削除
     obstacles.clear();
-
-    // 初期障害物を配置
-    obstacles.push_back(
-        { -1.0f, 1.0f, 0.0f, 3.0f, 20.0f, 22.0f }
-    );
-
-    obstacles.push_back(
-        { 3.0f, 5.0f, 0.0f, 3.0f, 30.0f, 32.0f }
-    );
-
-    obstacles.push_back(
-        { -5.0f, -3.0f, 0.0f, 3.0f, 40.0f, 42.0f }
-    );
-
-    // 初期障害物のレーンをランダムに変更
-    for (int i = 0;
-        i < static_cast<int>(obstacles.size());
-        i++)
-    {
-        int lane = GetRand(2);
-
-        if (lane == 0)
-        {
-            obstacles[i].minX = -5.0f;
-            obstacles[i].maxX = -3.0f;
-        }
-        else if (lane == 1)
-        {
-            obstacles[i].minX = -1.0f;
-            obstacles[i].maxX = 1.0f;
-        }
-        else
-        {
-            obstacles[i].minX = 3.0f;
-            obstacles[i].maxX = 5.0f;
-        }
-    }
 }
 // プレイヤーの後方に離れた障害物を削除する
 void ObstacleManager::RemovePassedObstacles(float playerZ)
@@ -106,6 +69,8 @@ void ObstacleManager::RemovePassedObstacles(float playerZ)
         }
     }
 }
+
+// 障害物をすべて描画する
 void ObstacleManager::DrawAll()
 {
     for (int i = 0; i < static_cast<int>(obstacles.size()); i++)

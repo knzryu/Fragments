@@ -6,11 +6,12 @@
 #include"Enemy.h"
 #include"Bullet.h"
 #include"ObstacleManager.h"
+#include "GameManager.h"
+#include <cstdio>
 
 // ゲームの状態をリセットする関数
 void ResetGame(
-    Player& player,
-	ObstacleManager& obstacleManager,
+    GameManager& gameManager,
     float& nextObstacleZ,
     bool& gameOver,
     bool& isDashing,
@@ -19,18 +20,14 @@ void ResetGame(
     int& dashDirection,
     int& previousTime)
 {
-    // プレイヤーの位置を初期化
-    player.x = 0.0f;
-    player.z = 0.0f;
+    //ゲーム全体を初期状態に戻す
+    gameManager.ResetRun();
 
     // ダッシュの状態を初期化
     isDashing = false;
     dashUsed = false;
     dashTimer = 0.0f;
     dashDirection = 0;
-
-	// 障害物を初期状態に戻す
-	obstacleManager.Reset();
 
     // 次の障害物の生成位置を初期化
     nextObstacleZ = 50.0f;
@@ -74,47 +71,27 @@ int WINAPI WinMain(
     SetCameraNearFar(0.1f, 1000.0f);
 
     //プレイヤーの移動
-    Player player;
+    GameManager gameManager;
+    gameManager.Initialize();
 
-    //敵配列管理
-    std::vector<Enemy> enemies;
+    //プレイヤークラスを参照
+    Player& player = gameManager.GetPlayer();
 
-    //敵の撃破数
-    int defeatedEnemyCount = 0;
+    //プレイヤーの成長・進行状況を参照
+    PlayerProgress& progress = gameManager.GetPlayerProgress();
 
-    //プレイヤーの経験値
-    int experience = 0;
+    //障害物管理オブジェクトを参照
+    ObstacleManager& obstacleManager = gameManager.GetObstacleManager();
 
-    // プレイヤーのレベル
-    int playerLevel = 1;
+    // GameManagerが管理する敵配列を参照
+    std::vector<Enemy>& enemies = gameManager.GetEnemies();
 
-    //次のレベルに必要な累計経験値
-    int nextLevelExp = 30;
-
-    //プレイヤーの能力値
-    int attackPower = 1;
-    float playerSpeed = 10.0f;
-    float bulletSpeed = 30.0f;
-
+   
+   
     //能力選択の状態
     bool isSelectingAbility = false;
     int abilityChoice = -1;
 
-    // 敵1体目を生成
-    Enemy enemy1;
-    enemy1.x = -3.0f;
-    enemy1.y = 0.0f;
-    enemy1.z = 20.0f;
-    enemy1.hp = 3;
-    enemies.push_back(enemy1);
-
-    // 敵2体目を生成
-    Enemy enemy2;
-    enemy2.x = 3.0f;
-    enemy2.y = 0.0f;
-    enemy2.z = 30.0f;
-    enemy2.hp = 3;
-    enemies.push_back(enemy2);
 
     int previousTime = GetNowCount();
 
@@ -130,20 +107,17 @@ int WINAPI WinMain(
     float obstacleSpacing = 10.0f;
     float nextObstacleZ = 50.0f;
 
-    // 複数の障害物をまとめて管理する入れ物を用意
-    ObstacleManager obstacleManager;
-
     //弾配列
     std::vector<Bullet> bullets;
 
+	// ゲームオーバー状態を管理する変数
     bool gameOver = false;
 
-
+	//  左クリックの押下状態を記録する変数
     bool wasLeftMousePressed = false;
 
     ResetGame(
-        player,
-		obstacleManager,
+        gameManager,
         nextObstacleZ,
         gameOver,
         isDashing,
@@ -172,13 +146,13 @@ int WINAPI WinMain(
         }
 
         // プレイヤーを自動前進させる
-        player.MoveForward(deltaTime);
+        gameManager.Update(deltaTime);
 
         // プレイヤーの後方にある障害物を削除する
-        obstacleManager.RemovePassedObstacles( player.z);
+        obstacleManager.RemovePassedObstacles( player.GetZ());
 
         // 次の障害物まで20以内になったら生成する
-        if (player.z + 20.0f >= nextObstacleZ)
+        if (player.GetZ() + 20.0f >= nextObstacleZ)
         {
             obstacleManager.SpawnObstacle( nextObstacleZ);
 
@@ -221,8 +195,9 @@ int WINAPI WinMain(
             }
             else
             {
-                player.x += dashDirection * dashSpeed * deltaTime;
-                dashTimer += deltaTime;
+                player.SetX(
+                    player.GetX() + dashDirection * dashSpeed * deltaTime
+                );
 
                 // 0.4秒経過したら終了
                 if (dashTimer >= dashDuration)
@@ -255,13 +230,14 @@ int WINAPI WinMain(
             {
                 Bullet newBullet;
 
-                newBullet.x = player.x;
+                newBullet.x = player.GetX();
                 newBullet.y = 1.0f;
-                newBullet.z = player.z + 1.0f;
+                newBullet.z = player.GetZ() + 1.0f;
 
                 bullets.push_back(newBullet);
             }
 
+			// 左クリックが押されている状態を記録
             wasLeftMousePressed = true;
         }
         else
@@ -271,7 +247,6 @@ int WINAPI WinMain(
         }
 
         
-
         //左クリックを押した瞬間だけ true
         bool leftClickDown = (
             mouseInput & MOUSE_INPUT_LEFT) != 0 &&
@@ -306,15 +281,15 @@ int WINAPI WinMain(
             {
                 if (abilityChoice == 1)
                 {
-                    attackPower++;
+                    player.SetAttackPower(player.GetAttackPower() + 1);
                 }
                 else if (abilityChoice == 2)
                 {
-                    playerSpeed += 2.0f;
+                    player.SetForwardSpeed(12.0f);
                 }
                 else if (abilityChoice == 3)
                 {
-                    bulletSpeed += 10.0f;
+                    player.SetBulletSpeed(player.GetBulletSpeed() + 10.0f);
                 }
 
                 abilityChoice = -1;
@@ -322,28 +297,27 @@ int WINAPI WinMain(
             }
         }
 
-
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
         previousMouseInput = mouseInput;
 
         // コースから外れないようにする
-        if (player.x < -8.0f)
+        if (player.GetX() < -8.0f)
         {
-            player.x = -8.0f;
+            player.SetX(-8.0f);
         }
 
-        if (player.x > 8.0f)
+        if (player.GetX() > 8.0f)
         {
-            player.x = 8.0f;
+			player.SetX(8.0f);
         }
 
         // プレイヤーの当たり判定範囲
-        float playerMinX = player.x - 0.5f;
-        float playerMaxX = player.x + 0.5f;
+        float playerMinX = player.GetX() - 0.5f;
+        float playerMaxX = player.GetX() + 0.5f;
         float playerMinY = 0.0f;
         float playerMaxY = 2.0f;
-        float playerMinZ = player.z - 0.5f;
-        float playerMaxZ = player.z + 0.5f;
+        float playerMinZ = player.GetZ() - 0.5f;
+        float playerMaxZ = player.GetZ() + 0.5f;
 
         // すべての障害物をチェック
 		for (int i = 0; i < obstacleManager.GetCount(); i++)
@@ -417,25 +391,20 @@ int WINAPI WinMain(
                     //HPが正の値から0になった瞬間だけ撃破数を増やす
                     if (previousHP > 0 && enemies[e].hp == 0)
                     {
-                        //敵の撃破数を増やす
-                        defeatedEnemyCount++;
+                        // レベルアップ前のレベルを記録
+                        int previousLevel = progress.GetPlayerLevel();
 
-                        //経験値を獲得
-                        experience += 10;
+                        // 撃破数を増やす
+                        progress.AddDefeatedEnemyCount();
 
-                        //必要経験値に達している間、レベルアップする
-                        while (experience >= nextLevelExp)
+                        // 経験値を獲得
+                        progress.AddExperience(10);
+
+                        // レベルが上がったか確認
+                        if (progress.GetPlayerLevel() > previousLevel)
                         {
-                            //レベルを1上げる
-                            playerLevel++;
-
-                            //次のレベルに必要な経験値を増やす
-                            nextLevelExp += 20;
-
-                            //能力選択画面を開く
                             isSelectingAbility = true;
                         }
-
                     }
                     // 命中した弾を削除
                     bullets.erase(bullets.begin() + i);
@@ -445,10 +414,10 @@ int WINAPI WinMain(
 
         // カメラの位置と注視点を計算する
         VECTOR cameraPos =
-            VGet(player.x, 5.0f, player.z - 10.0f);
+            VGet(player.GetX(), 5.0f, player.GetZ() - 10.0f);
 
         VECTOR cameraTarget =
-            VGet(player.x, 1.0f, player.z + 5.0f);
+            VGet(player.GetX(), 1.0f, player.GetZ() + 5.0f);
 
         // カメラを設定する
         SetCameraPositionAndTarget_UpVecY(
@@ -459,9 +428,10 @@ int WINAPI WinMain(
         // 画面を消去する
         ClearDrawScreen();
 
-        // プレイヤー本体
-        player.Draw();
+        //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
+        gameManager.Draw();
 
+      
         //敵を描画
        // 生存している敵をすべて描画
         for (int e = 0; e < static_cast<int>(enemies.size()); e++)
@@ -490,7 +460,7 @@ int WINAPI WinMain(
             20, 20,
             GetColor(255, 255, 255),
             "Defeated: %d",
-            defeatedEnemyCount
+            progress.GetDefeatedEnemyCount()
         );
 
         //経験値表示
@@ -499,7 +469,7 @@ int WINAPI WinMain(
             20, 45,
             GetColor(0, 255, 255),
             "Level: %d",
-            playerLevel
+            progress.GetPlayerLevel()
         );
 
         // 累計経験値と次の目標を表示
@@ -507,8 +477,8 @@ int WINAPI WinMain(
             20, 70,
             GetColor(255, 255, 0),
             "EXP: %d / %d",
-            experience,
-            nextLevelExp
+            progress.GetExperience(),
+            progress.GetNextLevelExp()
         );
 
         if (isSelectingAbility)
@@ -589,8 +559,7 @@ int WINAPI WinMain(
 
             // それ以外のキーなら再スタート
             ResetGame(
-                player,
-				obstacleManager,
+                gameManager,
                 nextObstacleZ,
                 gameOver,
                 isDashing,
@@ -604,7 +573,7 @@ int WINAPI WinMain(
         }
 
     }
-
+    
     DxLib_End();
 
     return 0;

@@ -21,6 +21,9 @@ public:
 
     //•`‰æ
     void Draw();
+
+private:
+    
 };
 
 #endif

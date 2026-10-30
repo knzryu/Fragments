@@ -1,6 +1,14 @@
 #include "DxLib.h"
 #include "Enemy.h"
 
+//“G‚Ì‰Šú‰»
+void Enemy::Initialize(float startX, float startY, float startZ)
+{
+    x = startX;
+    y = startY;
+    z = startZ;
+    hp = 3;
+}
 void Enemy::Draw()
 {
     DrawCube3D(

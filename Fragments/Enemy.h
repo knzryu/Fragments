@@ -12,6 +12,10 @@ public:
 
     void Draw();
 
+    // “G‚Ì‰Šú‰»
+    void Initialize(float startX, float startY, float startZ);
+
+
     //ó‚¯‚½ƒ_ƒ[ƒW•ª‚¾‚¯HP‚ğŒ¸‚ç‚·ŠÖ”‚ÌéŒ¾
     void TakeDamage(int damage);
 };

@@ -2,19 +2,30 @@
 #include "DxLib.h"
 
 //プレイヤーを3Dの立方体として描画
+void Player::Initialize()
+{
+    //初期化処理
+    x = 0.0f;
+    z = 0.0f;
+    forwardSpeed = 10.0f;
+    sideSpeed = 10.0f;
+}
+
+void Player::Reset()
+{
+    Initialize();
+}
+
+//描画
 void Player::Draw()
 {
+    //プレイヤーを3Dの立方体として描画
     DrawCube3D(
-        //立方体の最小座標（左下奥側）
-        VGet(x - 0.5f, 0.0f, z - 0.5f),
-        //立方体の最大座標（右上手前側）
-        VGet(x + 0.5f, 2.0f, z + 0.5f),
-        //表面の色
-        GetColor(0, 200, 255),
-        //裏面の色
-        GetColor(0, 200, 255),
-        //塗りつぶして描画
-        TRUE
+        VGet(x - 0.5f, 0.0f, z - 0.5f), //左下奥の座標
+        VGet(x + 0.5f, 2.0f, z + 0.5f), //右上手前の座標
+        GetColor(0, 200, 255),            //赤色
+		GetColor(0, 200, 255),            //赤色
+        TRUE                            //塗りつぶしあり
     );
 }
 
@@ -24,27 +35,69 @@ void Player::MoveForward(float deltaTime)
     //前進速度×経過時間をZ座標に加算する
     z += forwardSpeed * deltaTime;
 }
-
+//左移動
 void Player::MoveLeft(float deltaTime)
 {
     //左方向に移動するため、X座標から移動量を引く
     x -= sideSpeed * deltaTime;
 }
-
+//右移動
 void Player::MoveRight(float deltaTime)
 {
     //右方向に移動するため、X座標に移動量をプラスする
     x += sideSpeed * deltaTime;
 }
-
-//プレイヤーの前進速度を設定する関数の定義
+// 前進速度の設定
 void Player::SetForwardSpeed(float newSpeed)
 {
-    //引数で受け取った速度をメンバ変数に保存する
     forwardSpeed = newSpeed;
 }
 
 void Player::SetSideSpeed(float newSpeed)
 {
     sideSpeed = newSpeed;
+}
+
+//Z座標の取得
+float Player::GetZ() const
+{
+    return z;
+}
+float Player::GetX() const
+{
+    return x;
+}
+void Player::SetX(float newX)
+{
+    x = newX;
+}
+
+void Player::SetZ(float newZ)
+{
+    z = newZ;
+}
+
+
+// 攻撃力の取得
+int Player::GetAttackPower() const
+{
+    return attackPower;
+}
+
+// 攻撃力の設定
+void Player::SetAttackPower(int newPower)
+{
+    attackPower = newPower;
+}
+
+// 弾速の取得
+float Player::GetBulletSpeed() const
+{
+    return bulletSpeed;
+}
+
+// 弾速の設定
+void Player::SetBulletSpeed(float newSpeed)
+{
+    bulletSpeed = newSpeed;
 }
