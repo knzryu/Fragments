@@ -83,8 +83,11 @@ int WINAPI WinMain(
     //障害物管理オブジェクトを参照
     ObstacleManager& obstacleManager = gameManager.GetObstacleManager();
 
-    // GameManagerが管理する敵配列を参照
-    std::vector<Enemy>& enemies = gameManager.GetEnemies();
+    // EnemyManagerを取得
+    EnemyManager& enemyManager = gameManager.GetEnemyManager();
+
+	// BulletManagerを取得 
+    BulletManager& bulletManager = gameManager.GetBulletManager();
 
    
    
@@ -106,9 +109,6 @@ int WINAPI WinMain(
 
     float obstacleSpacing = 10.0f;
     float nextObstacleZ = 50.0f;
-
-    //弾配列
-    std::vector<Bullet> bullets;
 
 	// ゲームオーバー状態を管理する変数
     bool gameOver = false;
@@ -228,13 +228,11 @@ int WINAPI WinMain(
             // 左クリックした瞬間だけ発射
             if (!wasLeftMousePressed)
             {
-                Bullet newBullet;
-
-                newBullet.x = player.GetX();
-                newBullet.y = 1.0f;
-                newBullet.z = player.GetZ() + 1.0f;
-
-                bullets.push_back(newBullet);
+                bulletManager.SpawnBullet(
+                    player.GetX(),
+                    1.0f,
+                    player.GetZ() + 1.0f
+                );
             }
 
 			// 左クリックが押されている状態を記録
@@ -343,32 +341,41 @@ int WINAPI WinMain(
 
         // 敵が生存している場合だけ、弾との当たり判定を行う
         // すべての敵と弾の当たり判定を行う
-        for (int e = 0; e < static_cast<int>(enemies.size()); e++)
+        for (int e = 0; e < enemyManager.GetCount(); e++)
         {
+		
+            Enemy& enemy = enemyManager.GetEnemy(e);
             // 倒された敵は判定しない
-            if (enemies[e].hp <= 0)
+            if (enemy.hp <= 0)
             {
                 continue;
             }
 
             // 敵の当たり判定範囲
-            float enemyMinX = enemies[e].x - 0.5f;
-            float enemyMaxX = enemies[e].x + 0.5f;
-            float enemyMinY = enemies[e].y;
-            float enemyMaxY = enemies[e].y + 2.0f;
-            float enemyMinZ = enemies[e].z - 0.5f;
-            float enemyMaxZ = enemies[e].z + 0.5f;
+            float enemyMinX = enemy.x - 0.5f;
+            float enemyMaxX = enemy.x + 0.5f;
+            float enemyMinY = enemy.y;
+            float enemyMaxY = enemy.y + 2.0f;
+            float enemyMinZ = enemy.z - 0.5f;
+            float enemyMaxZ = enemy.z + 0.5f;
 
             // すべての弾を後ろから確認する
-            for (int i = static_cast<int>(bullets.size()) - 1; i >= 0; i--)
+            for (int i = bulletManager.GetCount() - 1; i >= 0; i--)
             {
+
+                // 無効な弾は判定しない 
+                if (!bulletManager.GetBullet(i).active)
+                {
+                    continue;
+                }
+
                 // 弾の当たり判定範囲
-                float bulletMinX = bullets[i].x - 0.15f;
-                float bulletMaxX = bullets[i].x + 0.15f;
-                float bulletMinY = bullets[i].y - 0.15f;
-                float bulletMaxY = bullets[i].y + 0.15f;
-                float bulletMinZ = bullets[i].z - 0.15f;
-                float bulletMaxZ = bullets[i].z + 0.15f;
+                float bulletMinX = bulletManager.GetBullet(i).x - 0.15f;
+                float bulletMaxX = bulletManager.GetBullet(i).x + 0.15f;
+                float bulletMinY = bulletManager.GetBullet(i).y - 0.15f;
+                float bulletMaxY = bulletManager.GetBullet(i).y + 0.15f;
+                float bulletMinZ = bulletManager.GetBullet(i).z - 0.15f;
+                float bulletMaxZ = bulletManager.GetBullet(i).z + 0.15f;
 
                 // 敵と弾が重なっているか
                 bool isHit = IsCollidingAABB(
@@ -383,13 +390,13 @@ int WINAPI WinMain(
                 if (isHit)
                 {
                     //ダメージを与える前のHPを記録
-                    int previousHP = enemies[e].hp;
+                    int previousHP = enemy.hp;
 
                     //1ダメージを与える
-                    enemies[e].TakeDamage(1);
+                    enemy.TakeDamage(1);
                     
                     //HPが正の値から0になった瞬間だけ撃破数を増やす
-                    if (previousHP > 0 && enemies[e].hp == 0)
+                    if (previousHP > 0 && enemy.hp == 0)
                     {
                         // レベルアップ前のレベルを記録
                         int previousLevel = progress.GetPlayerLevel();
@@ -407,10 +414,12 @@ int WINAPI WinMain(
                         }
                     }
                     // 命中した弾を削除
-                    bullets.erase(bullets.begin() + i);
+                    bulletManager.GetBullet(i).active = false;
                 }
             }
         }
+
+        bulletManager.RemoveInactiveBullets();
 
         // カメラの位置と注視点を計算する
         VECTOR cameraPos =
@@ -434,13 +443,7 @@ int WINAPI WinMain(
       
         //敵を描画
        // 生存している敵をすべて描画
-        for (int e = 0; e < static_cast<int>(enemies.size()); e++)
-        {
-            if (enemies[e].hp > 0)
-            {
-                enemies[e].Draw();
-            }
-        }
+		enemyManager.DrawAll();
 
         //障害物を配置
 		obstacleManager.DrawAll();
@@ -538,11 +541,9 @@ int WINAPI WinMain(
             );
         }
         
-        for (int i = 0; i < static_cast<int>(bullets.size()); i++)
-        {
-            bullets[i].Update(deltaTime);
-            bullets[i].Draw();
-        }
+        bulletManager.UpdateAll(deltaTime);
+        bulletManager.DrawAll();
+
         // 描画結果を画面に反映
         ScreenFlip();
 

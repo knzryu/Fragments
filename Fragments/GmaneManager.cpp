@@ -6,7 +6,9 @@ void GameManager::Initialize()
 	player.Initialize();
 
 	//初期配置の敵を生成
-	SpawnInitialEnemies();
+	enemyManager.Initialize();
+
+	bulletManager.Initialize();
 }
 
 //ゲームの更新
@@ -20,6 +22,7 @@ void GameManager::Update(float deltaTime)
 void GameManager::Draw()
 {
 	player.Draw();
+	enemyManager.DrawAll();
 }
 
 Player& GameManager::GetPlayer()
@@ -39,23 +42,18 @@ ObstacleManager& GameManager::GetObstacleManager()
 	return obstacleManager;
 }
 
-// 敵の配列への参照を返す
-std::vector<Enemy>& GameManager::GetEnemies()
+// EnemyManagerを取得
+EnemyManager& GameManager::GetEnemyManager()
 {
-	return enemies;
+	return enemyManager;
 }
 
-//初期配置の敵を生成する
-void GameManager::SpawnInitialEnemies()
+// BulletManagerを取得　
+BulletManager& GameManager::GetBulletManager()
 {
-	Enemy enemy1;
-	enemy1.Initialize(-3.0f, 0.0f, 20.0f);
-	enemies.push_back(enemy1);
-
-	Enemy enemy2;
-	enemy2.Initialize(3.0f, 0.0f, 30.0f);
-	enemies.push_back(enemy2);
+	return bulletManager;
 }
+
 
 //gameManagerにリセット処理もまかせた
 //ゲーム全体をリセット新しいランの状態に戻す
@@ -69,9 +67,9 @@ void GameManager::ResetRun()
 	//障害物を全て削除
 	obstacleManager.Reset();
 
-	//敵をすべて削除する
-	enemies.clear();
+	//敵を全て削除
+	enemyManager.Initialize();
 
-	//敵を初期配置
-	SpawnInitialEnemies();
+	//弾を全て削除 
+	bulletManager.Initialize();
 }

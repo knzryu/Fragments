@@ -3,6 +3,8 @@
 #include "ObstacleManager.h"
 #include "Enemy.h"
 #include "PlayerProgress.h"
+#include "EnemyManager.h"
+#include "BulletManager.h"
 
 class GameManager
 {
@@ -18,7 +20,10 @@ private:
 	ObstacleManager obstacleManager;
 
 	//敵オブジェクトの管理
-	std::vector<Enemy> enemies;
+	EnemyManager enemyManager;
+
+	//弾管理オブジェクト　
+	BulletManager bulletManager;
 
 public:
 	//ゲームの初期化
@@ -42,11 +47,11 @@ public:
 	//障害物オブジェクトへの参照を返す
 	ObstacleManager& GetObstacleManager();
 
-	//敵の配列への参照を返す
-	std::vector<Enemy>& GetEnemies();
+	//Enemymanagerを取得
+	EnemyManager& GetEnemyManager();
 
-	//敵を生成する
-	void SpawnInitialEnemies();
+	//BulletManagerを取得　
+	BulletManager& GetBulletManager();
 
 	// 敵の撃破数を増やす
 	void AddDefeatedEnemyCount();
