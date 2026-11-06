@@ -5,6 +5,14 @@ class Player
 {
 private:
 
+    //3Dモデル
+    int modelHandle = -1;
+
+    int attachIndex = -1;
+    float animTime = 0.0f;
+    float animTotalTime = 0.0f;
+    float animSpeed = 0.03f;
+
     //プレイヤーの座標
 	float x = 0.0f;
     float z = 0.0f;
@@ -12,13 +20,19 @@ private:
     //移動速度
     float forwardSpeed = 10.0f;
     //左右
-	float sideSpeed = 10.0f;
+	float sideSpeed = 5.0f;
 
     //プレイヤーの能力値
     int attackPower = 1;
     float bulletSpeed = 30.0f;
 
 public:
+
+    //モデルの解放
+    void Finalize();
+
+    void UpdateAnimation(float deltaTime);
+
     //座標の取得
     float GetX() const;
 	float GetZ() const;

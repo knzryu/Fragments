@@ -8,7 +8,7 @@ class ObstacleManager
 {
 public:
 	//áŠQ•¨‚ğ¶¬‚·‚éŠÖ”‚ÌéŒ¾
-    void SpawnObstacle(float spawnZ);
+    void SpawnObstacle(float spawnZ, float roadCenterX);
 	//ƒvƒŒƒCƒ„[‚ÌŒã•û‚É‚ ‚éáŠQ•¨‚ğíœ‚·‚éŠÖ”‚ÌéŒ¾
     void RemovePassedObstacles(float playerZ);
 	//áŠQ•¨‚ğ‰Šúó‘Ô‚É–ß‚·ŠÖ”‚ÌéŒ¾

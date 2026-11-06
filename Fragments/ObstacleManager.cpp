@@ -14,39 +14,36 @@ Obstacle& ObstacleManager::GetObstacle(int index)
     return obstacles[index];
 }
 //障害物生成関数
-void ObstacleManager::SpawnObstacle(float spawnZ)   
+void ObstacleManager::SpawnObstacle(float spawnZ, float roadCenterX)   
 {
     // 生成するレーンをランダムに決める
     //GetRandは０、１、２のいずれかをランダムに返す
-    int lane = GetRand(2);
+   // 障害物の幅
+    const float obstacleWidth = 2.0f;
 
-    float minX;
-    float maxX;
+    // コースの端から余裕を確保した生成範囲
+    const float minOffset = -8.0f;
+    const float maxOffset = 8.0f;
 
-    if (lane == 0)
-    {
-        minX = -5.0f;
-        maxX = -3.0f;
-    }
-    else if (lane == 1)
-    {
-        minX = -1.0f;
-        maxX = 1.0f;
-    }
-    else
-    {
-        minX = 3.0f;
-        maxX = 5.0f;
-    }
+    // ランダムな位置を決定する
+    float randomOffset =
+        minOffset + (GetRand(1600) / 100.0f);
 
-    // obstaclesに障害物を一個追加する
+    // コース中心を基準に障害物の位置を決める
+    float obstacleCenterX = roadCenterX + randomOffset;
+
+    float minX = obstacleCenterX - obstacleWidth / 2.0f;
+    float maxX = obstacleCenterX + obstacleWidth / 2.0f;
+
+    // 障害物を追加する
     obstacles.push_back(
         {
-            minX, maxX,           //X座標の範囲
-            0.0f, 3.0f,           //Y座標の範囲
-            spawnZ, spawnZ + 2.0f //Z座標の範囲
+            minX, maxX,
+            0.0f, 3.0f,
+            spawnZ, spawnZ + 2.0f
         }
     );
+ 
 }
 // 障害物を初期状態に戻す
 void ObstacleManager::Reset()
