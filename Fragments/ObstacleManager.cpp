@@ -13,44 +13,41 @@ Obstacle& ObstacleManager::GetObstacle(int index)
 {
     return obstacles[index];
 }
-//障害物生成関数
-void ObstacleManager::SpawnObstacle(float spawnZ, float roadCenterX)   
+
+// 障害物生成関数
+void ObstacleManager::SpawnObstacle(
+    float courseZ,
+    const CourseManager& courseManager)
 {
-    // 生成するレーンをランダムに決める
-    //GetRandは０、１、２のいずれかをランダムに返す
-   // 障害物の幅
-    const float obstacleWidth = 2.0f;
+    // 障害物の横方向の配置範囲
+    const float minOffset = -3.5f;
+    const float maxOffset = 3.5f;
 
-    // コースの端から余裕を確保した生成範囲
-    const float minOffset = -8.0f;
-    const float maxOffset = 8.0f;
-
-    // ランダムな位置を決定する
+    // ランダムな横方向の位置を決定
     float randomOffset =
-        minOffset + (GetRand(1600) / 100.0f);
+        minOffset + GetRand(700) / 100.0f;
 
-    // コース中心を基準に障害物の位置を決める
-    float obstacleCenterX = roadCenterX + randomOffset;
+    // 障害物を生成
+    Obstacle obstacle;
 
-    float minX = obstacleCenterX - obstacleWidth / 2.0f;
-    float maxX = obstacleCenterX + obstacleWidth / 2.0f;
+    // コース上の位置を設定
+    obstacle.courseZ = courseZ;
+    obstacle.laneOffset = randomOffset;
 
-    // 障害物を追加する
-    obstacles.push_back(
-        {
-            minX, maxX,
-            0.0f, 3.0f,
-            spawnZ, spawnZ + 2.0f
-        }
-    );
- 
+    // ワールド座標を更新
+    obstacle.UpdatePosition(courseManager);
+
+    // 管理リストに追加
+    obstacles.push_back(obstacle);
 }
+
 // 障害物を初期状態に戻す
 void ObstacleManager::Reset()
 {
     // 障害物をすべて削除
     obstacles.clear();
 }
+
 // プレイヤーの後方に離れた障害物を削除する
 void ObstacleManager::RemovePassedObstacles(float playerZ)
 {
@@ -60,7 +57,7 @@ void ObstacleManager::RemovePassedObstacles(float playerZ)
         i--)
     {
         // プレイヤーの後方に離れた障害物を削除する条件式
-        if (obstacles[i].maxZ < playerZ - 5.0f)
+        if (obstacles[i].courseZ < playerZ - 5.0f)
         {
             obstacles.erase(obstacles.begin() + i);
         }

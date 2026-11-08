@@ -9,6 +9,22 @@ void Enemy::Initialize(float startX, float startY, float startZ)
     z = startZ;
     hp = 3;
 }
+
+// コース情報から敵のワールド座標を更新する
+void Enemy::UpdatePosition(const CourseManager& courseManager)
+{
+    // コース上の位置から道路の中心を取得
+    CoursePoint center = courseManager.GetPosition(courseZ);
+
+    // コース上の位置から道路の右方向を取得
+    CoursePoint right = courseManager.GetRight(courseZ);
+
+    // 道路の中心から横方向にずらした敵の座標
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
+}
+
+
 void Enemy::Draw()
 {
     DrawCube3D(

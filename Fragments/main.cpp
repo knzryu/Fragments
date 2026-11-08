@@ -12,23 +12,11 @@
 #include "Spline.h"
 #include "CourseManager.h"
 
-//コースの中心X座標を取得
-float GetRoadCenterX(float z)
-{
-	// コースの中心をサインカーブで変化させる
-	// 振幅と周波数を調整して、コースの曲がり具合を変えることができる
-
-    //振幅（左右の移動量）
-    const float curveAmplitude = 20.0f;
-	//周波数（曲がりの速さ）
-    const float curveFrequency = 0.01f;
-
-    return sinf(z * curveFrequency) * curveAmplitude;
-}
 
 // ゲームの状態をリセットする関数
 void ResetGame(
     GameManager& gameManager,
+    const CourseManager& courseManager,
     float& nextObstacleZ,
     bool& gameOver,
     bool& isDashing,
@@ -38,7 +26,7 @@ void ResetGame(
     int& previousTime)
 {
     //ゲーム全体を初期状態に戻す
-    gameManager.ResetRun();
+    gameManager.ResetRun(courseManager);
 
     // ダッシュの状態を初期化
     isDashing = false;
@@ -91,13 +79,16 @@ int WINAPI WinMain(
     // カメラに映す奥行きの範囲
     SetCameraNearFar(0.1f, 1000.0f);
 
-    //プレイヤーの移動
-    GameManager gameManager;
-    gameManager.Initialize();
 
     //コースの管理
     CourseManager courseManager;
     courseManager.Initialize();
+
+    //プレイヤーの移動
+    GameManager gameManager;
+    gameManager.Initialize(courseManager);
+
+  
 
 
     //プレイヤークラスを参照
@@ -144,6 +135,7 @@ int WINAPI WinMain(
 
     ResetGame(
         gameManager,
+        courseManager,
         nextObstacleZ,
         gameOver,
         isDashing,
@@ -171,28 +163,30 @@ int WINAPI WinMain(
             deltaTime = 0.05f;
         }
 
-        // プレイヤーを自動前進させる
-        gameManager.Update(deltaTime);
+        
+        gameManager.Update(deltaTime, courseManager);
+
+        player.UpdateCoursePosition(courseManager);
 
         //毎フレーム、アニメーションの時間を進める
         player.UpdateAnimation(deltaTime);
 
         // プレイヤーの後方にある障害物を削除する
-        obstacleManager.RemovePassedObstacles( player.GetZ());
+        obstacleManager.RemovePassedObstacles(
+            player.GetCourseZ()
+        );
 
         // 次の障害物まで20以内になったら生成する
-        if (player.GetZ() + 20.0f >= nextObstacleZ)
+        if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
         {
-            float spawnRoadCenterX = GetRoadCenterX(nextObstacleZ);
-
+            // スプラインから生成位置を取得
             obstacleManager.SpawnObstacle(
                 nextObstacleZ,
-                spawnRoadCenterX
+                courseManager
             );
 
-            // 次の生成位置を更新する
+            // 次の生成位置を更新
             nextObstacleZ += obstacleSpacing;
-
         }
 
         // ダッシュ開始
@@ -230,9 +224,13 @@ int WINAPI WinMain(
             }
             else
             {
-                player.SetX(
-                    player.GetX() + dashDirection * dashSpeed * deltaTime
+                player.SetLaneOffset(
+                    player.GetLaneOffset()
+                    + dashDirection * dashSpeed * deltaTime
                 );
+
+                // ダッシュの経過時間を更新
+                dashTimer += deltaTime;
 
                 // 0.4秒経過したら終了
                 if (dashTimer >= dashDuration)
@@ -254,6 +252,10 @@ int WINAPI WinMain(
                 player.MoveRight(deltaTime);
             }
         }
+
+       
+
+
         // マウスのボタン状態を取得
         int mouseInput = GetMouseInput();
 
@@ -334,22 +336,25 @@ int WINAPI WinMain(
         previousMouseInput = mouseInput;
 
         // コースから外れないようにする
-     // コースの中心位置を取得
-        float roadCenterX = GetRoadCenterX(player.GetZ());
+        // コースの中心位置を取得
+       
+        // コースの左右の境界
+        const float roadLimit = 8.0f;
 
-        // プレイヤーがコースから外れないようにする
-        float roadMinX = roadCenterX - 8.0f;
-        float roadMaxX = roadCenterX + 8.0f;
-
-        if (player.GetX() < roadMinX)
+        // 横方向の移動量を制限
+        if (player.GetLaneOffset() < -roadLimit)
         {
-            player.SetX(roadMinX);
+            player.SetLaneOffset(-roadLimit);
         }
 
-        if (player.GetX() > roadMaxX)
+        if (player.GetLaneOffset() > roadLimit)
         {
-            player.SetX(roadMaxX);
+            player.SetLaneOffset(roadLimit);
         }
+        
+        // 横移動を反映してワールド座標を更新
+       //これがないと、横移動したのにxとzが前の位置のままになってしまう。　
+        player.UpdateCoursePosition(courseManager);
 
         // プレイヤーの当たり判定範囲
         float playerMinX = player.GetX() - 0.5f;
@@ -463,32 +468,23 @@ int WINAPI WinMain(
 
         bulletManager.RemoveInactiveBullets();
 
-        // コースのカーブの傾きを計算
-        float slope = 20.0f * 0.01f * cosf(player.GetZ() * 0.01f);
+        // スプラインから現在位置の進行方向を取得
+        CoursePoint cameraDirection =
+            courseManager.GetDirection(player.GetCourseZ());
 
-        // 前進方向を正規化
-        float length = sqrtf(1.0f + slope * slope);
 
-        float forwardX = slope / length;
-        float forwardZ = 1.0f / length;
-
-        // 右方向を計算
-        float rightX = 1.0f / length;
-        float rightZ = -slope / length;
-
-        // カメラの位置：プレイヤーの真後ろ
+        // カメラの位置：プレイヤーの後方
         VECTOR cameraPos = VGet(
-            player.GetX() - forwardX * 5.0f,
+            player.GetX() - cameraDirection.x * 5.0f,
             4.5f,
-            player.GetZ() - forwardZ * 5.0f
+            player.GetZ() - cameraDirection.z * 5.0f
         );
 
-
-        // カメラの注視点
+        // カメラの注視点：プレイヤーの前方
         VECTOR cameraTarget = VGet(
-            player.GetX() + forwardX * 6.0f,
+            player.GetX() + cameraDirection.x * 6.0f,
             1.5f,
-            player.GetZ() + forwardZ * 6.0f
+            player.GetZ() + cameraDirection.z * 6.0f
         );
 
         // カメラを設定
@@ -540,52 +536,108 @@ int WINAPI WinMain(
        // 生存している敵をすべて描画
 		enemyManager.DrawAll();
 
+        // 敵の数を確認
+        DrawFormatString(
+            20, 95,
+            GetColor(255, 255, 0),
+            "Enemy Count: %d",
+            enemyManager.GetCount()
+        );
+
+        // 各敵の座標とHPを確認
+        for (int i = 0; i < enemyManager.GetCount(); i++)
+        {
+            Enemy& enemy = enemyManager.GetEnemy(i);
+
+            DrawFormatString(
+                20, 120 + i * 20,
+                GetColor(255, 255, 0),
+                "Enemy %d: CourseZ=%.2f Offset=%.2f X=%.2f Z=%.2f",
+                i,
+                enemy.courseZ,
+                enemy.laneOffset,
+                enemy.x,
+                enemy.z
+            );
+        }
+
         //障害物を配置
 		obstacleManager.DrawAll();
         
+        //---------------------------------------
 
-        // 地面を描画する
-      // コースをポリゴンで描画する
+        // スプラインに沿った道路を描画する
         const float roadWidth = 10.0f;
         const float roadHeight = 0.01f;
-        const float segmentLength = 20.0f;
+        const float segmentLength = 2.0f;
 
         const int roadColor = GetColor(80, 80, 80);
 
-        // Z方向にコースを分割して描画
-        for (float z = -100.0f; z < 1000.0f; z += segmentLength)
+        // 描画するZ座標の範囲
+        float startZ = player.GetCourseZ() - 100.0f;
+        float endZ = player.GetCourseZ() + 200.0f;
+
+        // Z方向に一定間隔で道路を分割
+        for (float z = startZ; z < endZ; z += segmentLength)
         {
             float nextZ = z + segmentLength;
 
-            //各区間のコース中心を取得
-			float centerNear = GetRoadCenterX(z);
-			float centerFar = GetRoadCenterX(nextZ);
+            // 手前側と奥側のコース中心を取得
+            CoursePoint centerNear = courseManager.GetPosition(z);
+            CoursePoint centerFar = courseManager.GetPosition(nextZ);
 
-            // 手前側の頂点
-            VECTOR leftNear =
-                VGet(centerNear - roadWidth, roadHeight, z);
+            // それぞれの地点の右方向を取得
+            CoursePoint rightNear = courseManager.GetRight(z);
+            CoursePoint rightFar = courseManager.GetRight(nextZ);
 
-            VECTOR rightNear =
-                VGet(centerNear + roadWidth, roadHeight, z);
-
-            // 奥側の頂点
-            VECTOR leftFar =
-                VGet(centerFar - roadWidth, roadHeight, nextZ);
-
-            VECTOR rightFar =
-                VGet(centerFar + roadWidth, roadHeight, nextZ);
-
-            // 1つの区間を2枚の三角形で描画
-            DrawTriangle3D(
-                leftNear, rightNear, leftFar,
-                roadColor, TRUE
+            // 手前側の左端
+            VECTOR leftNear = VGet(
+                centerNear.x - rightNear.x * roadWidth,
+                roadHeight,
+                centerNear.z - rightNear.z * roadWidth
             );
 
+            // 手前側の右端
+            VECTOR rightNearPos = VGet(
+                centerNear.x + rightNear.x * roadWidth,
+                roadHeight,
+                centerNear.z + rightNear.z * roadWidth
+            );
+
+            // 奥側の左端
+            VECTOR leftFar = VGet(
+                centerFar.x - rightFar.x * roadWidth,
+                roadHeight,
+                centerFar.z - rightFar.z * roadWidth
+            );
+
+            // 奥側の右端
+            VECTOR rightFarPos = VGet(
+                centerFar.x + rightFar.x * roadWidth,
+                roadHeight,
+                centerFar.z + rightFar.z * roadWidth
+            );
+
+            // 三角形その1
             DrawTriangle3D(
-                rightNear, rightFar, leftFar,
-                roadColor, TRUE
+                leftNear,
+                rightNearPos,
+                leftFar,
+                roadColor,
+                TRUE
+            );
+
+            // 三角形その2
+            DrawTriangle3D(
+                rightNearPos,
+                rightFarPos,
+                leftFar,
+                roadColor,
+                TRUE
             );
         }
+     
+        //-----------------------------------------
 
         //敵の撃破数を表示
         DrawFormatString(
@@ -690,6 +742,7 @@ int WINAPI WinMain(
             // それ以外のキーなら再スタート
             ResetGame(
                 gameManager,
+                courseManager,
                 nextObstacleZ,
                 gameOver,
                 isDashing,

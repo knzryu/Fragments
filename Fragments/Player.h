@@ -1,5 +1,6 @@
 #ifndef PLAYER_H  //インクルードガード
 #define PLAYER_H
+#include "CourseManager.h"
 
 class Player
 {
@@ -26,6 +27,16 @@ private:
     int attackPower = 1;
     float bulletSpeed = 30.0f;
 
+    // コース上の進行位置
+    float courseZ = 0.0f;
+
+    // コースの進行方向
+    float directionX = 0.0f;
+    float directionZ = 1.0f;
+
+    // コース中心からの横方向の距離
+    float laneOffset = 0.0f;
+
 public:
 
     //モデルの解放
@@ -40,6 +51,10 @@ public:
 	//座標の設定
 	void SetX(float newX);
 	void SetZ(float newZ);
+
+    // 横方向オフセットの取得・設定
+    float GetLaneOffset() const;
+    void SetLaneOffset(float newOffset);
 
     //攻撃力の取得・設定
     int GetAttackPower()const;
@@ -56,11 +71,19 @@ public:
     void Reset();
 
 
+    // コース上の位置を更新する
+    void UpdateCoursePosition(const CourseManager& courseManager);
+
+    // コース上の進行位置を取得する
+    float GetCourseZ() const;
+
     //deltaTimeに応じて前進する関数の宣言
     //deltaTimeを掛けて１フレームで移動する距離を[経過時間]に応じて計算するため
+    // コースに沿った移動
     void MoveForward(float deltaTime);
     void MoveLeft(float deltaTime);
     void MoveRight(float deltaTime);
+
 
     //前進速度を設定する関数の宣言
     void SetForwardSpeed(float newSpeed);

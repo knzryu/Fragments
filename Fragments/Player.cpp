@@ -11,6 +11,9 @@ void Player::Initialize()
     forwardSpeed = 10.0f;
     sideSpeed = 5.0f;
 
+    courseZ = 0.0f;
+    laneOffset = 0.0f;
+
     // 3Dモデルを読み込む
     modelHandle = MV1LoadModel("Models/PlayerModel.mv1");
 
@@ -52,6 +55,9 @@ void Player::Reset()
     x = 0.0f;
     z = 0.0f;
 
+    courseZ = 0.0f;
+    laneOffset = 0.0f;
+
     // 移動速度を初期化
     forwardSpeed = 10.0f;
     sideSpeed = 5.0f;
@@ -68,17 +74,15 @@ void Player::Reset()
         );
     }
 }
+
 //描画
 void Player::Draw()
 {
     // モデルが正常に読み込まれている場合
     if (modelHandle != -1)
     {
-        // コースの傾きを計算
-        float slope = 20.0f * 0.01f * cosf(z * 0.01f);
-
-        // 進行方向の角度を計算
-        float angle = atan2f(slope, 1.0f);
+        // コースの進行方向からモデルの向きを計算
+        float angle = atan2f(directionX, directionZ);
 
         // モデルを進行方向に回転
         MV1SetRotationXYZ(
@@ -98,43 +102,22 @@ void Player::Draw()
 }
 
 //プレイヤーを前進させる関数の定義
+//directionX,進行方向のX成分
 void Player::MoveForward(float deltaTime)
 {
-    // コースのカーブの傾きを計算
-    float slope = 20.0f * 0.01f * cosf(z * 0.01f);
-
-    // 前進速度からZ方向の移動量を計算
-    float moveZ = forwardSpeed * deltaTime / sqrtf(1.0f + slope * slope);
-
-    // カーブに沿ってX方向にも移動
-    float moveX = slope * moveZ;
-
-    x += moveX;
-    z += moveZ;
+    courseZ += forwardSpeed * deltaTime;
 }
 
 // 左移動
 void Player::MoveLeft(float deltaTime)
 {
-    float slope = 20.0f * 0.01f * cosf(z * 0.01f);
-
-    float moveX = sideSpeed * deltaTime / sqrtf(1.0f + slope * slope);
-    float moveZ = -slope * moveX;
-
-    x -= moveX;
-    z += moveZ;
+    laneOffset -= sideSpeed * deltaTime;
 }
 
 // 右移動
 void Player::MoveRight(float deltaTime)
 {
-    float slope = 20.0f * 0.01f * cosf(z * 0.01f);
-
-    float moveX = sideSpeed * deltaTime / sqrtf(1.0f + slope * slope);
-    float moveZ = -slope * moveX;
-
-    x += moveX;
-    z += moveZ;
+    laneOffset += sideSpeed * deltaTime;
 }
 // 前進速度の設定
 void Player::SetForwardSpeed(float newSpeed)
@@ -165,6 +148,49 @@ void Player::SetZ(float newZ)
 {
     z = newZ;
 }
+
+float Player::GetCourseZ() const
+{
+    return courseZ;
+}
+
+
+float Player::GetLaneOffset() const
+{
+    return laneOffset;
+}
+
+void Player::SetLaneOffset(float newOffset)
+{
+    laneOffset = newOffset;
+}
+
+
+void Player::UpdateCoursePosition(
+    const CourseManager& courseManager)
+{
+    // コース中心の位置を取得
+    CoursePoint center =
+        courseManager.GetPosition(courseZ);
+
+    // コースの右方向を取得
+    CoursePoint right =
+        courseManager.GetRight(courseZ);
+
+    // コースの進行方向を取得
+    CoursePoint direction =
+        courseManager.GetDirection(courseZ);
+
+    // 進行方向を保存
+    directionX = direction.x;
+    directionZ = direction.z;
+
+    // 横方向のオフセットを反映してワールド座標を計算
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
+}
+
+
 
 
 // 攻撃力の取得

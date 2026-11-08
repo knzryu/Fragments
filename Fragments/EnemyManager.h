@@ -3,27 +3,32 @@
 
 #include <vector>
 #include "Enemy.h"
+#include "CourseManager.h"
 
 class EnemyManager
 {
 private:
-    // 敵を管理する配列
     std::vector<Enemy> enemies;
 
 public:
     // 敵の初期生成
-    void Initialize();
+    void Initialize(const CourseManager& courseManager);
 
     // 敵の生成
-    void SpawnEnemy(float x, float y, float z);
+    void SpawnEnemy(
+        float courseZ,
+        float laneOffset,
+        float y,
+        const CourseManager& courseManager
+    );
 
     // 敵の描画
     void DrawAll();
 
-	// 敵の数を取得
+    // 敵の数を取得
     int GetCount() const;
 
-    //敵のを取得
+    // 敵を取得
     Enemy& GetEnemy(int index);
 
     // 敵を全削除

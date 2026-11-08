@@ -1,21 +1,27 @@
 #include "GameManager.h"
 
 //ゲームの初期化
-void GameManager::Initialize()
+void GameManager::Initialize(const CourseManager& courseManager)
 {
 	player.Initialize();
 
-	//初期配置の敵を生成
-	enemyManager.Initialize();
+	// 初期配置の敵を生成
+	enemyManager.Initialize(courseManager);
 
 	bulletManager.Initialize();
 }
 
-//ゲームの更新
-void GameManager::Update(float deltaTime)
+
+// ゲームの更新
+void GameManager::Update(
+	float deltaTime,
+	const CourseManager& courseManager)
 {
-	//プレイヤーを自動前進させる
+	// コース上の進行位置を更新
 	player.MoveForward(deltaTime);
+
+	// コース上の位置からワールド座標を計算
+	player.UpdateCoursePosition(courseManager);
 }
 
 //ゲームの描画
@@ -57,7 +63,7 @@ BulletManager& GameManager::GetBulletManager()
 
 //gameManagerにリセット処理もまかせた
 //ゲーム全体をリセット新しいランの状態に戻す
-void GameManager::ResetRun()
+void GameManager::ResetRun(const CourseManager& courseManager)
 {
 	//プレイヤーを初期状態に戻す
 	player.Reset();
@@ -68,7 +74,7 @@ void GameManager::ResetRun()
 	obstacleManager.Reset();
 
 	//敵を全て削除
-	enemyManager.Initialize();
+	enemyManager.Initialize(courseManager);
 
 	//弾を全て削除 
 	bulletManager.Initialize();

@@ -5,6 +5,7 @@
 #include "PlayerProgress.h"
 #include "EnemyManager.h"
 #include "BulletManager.h"
+#include "CourseManager.h"
 
 class GameManager
 {
@@ -27,13 +28,13 @@ private:
 
 public:
 	//ゲームの初期化
-	void Initialize();
+	void Initialize(const CourseManager& courseManager);
 
 	//ゲーム全体のリセット
-	void ResetRun();
+	void ResetRun(const CourseManager& courseManager);
 
 	//ゲームの更新
-	void Update(float deltaTime);
+	void Update(float deltaTime, const CourseManager& courseManager);
 
 	//ゲームの描画
 	void Draw();
