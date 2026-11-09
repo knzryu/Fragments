@@ -11,7 +11,7 @@
 #include <math.h>
 #include "Spline.h"
 #include "CourseManager.h"
-
+#include <algorithm>
 
 // ゲームの状態をリセットする関数
 void ResetGame(
@@ -588,10 +588,27 @@ int WINAPI WinMain(
         const int roadColor = GetColor(80, 80, 80);
 
         // 描画するZ座標の範囲
+        // スプラインが正常に計算できる範囲
+        float minCourseZ = points[1].z;
+        float maxCourseZ = points[points.size() - 2].z;
+
+        // 道路の描画範囲
         float startZ = floorf(
             (player.GetCourseZ() - 100.0f) / segmentLength
         ) * segmentLength;
+
         float endZ = player.GetCourseZ() + 200.0f;
+
+        // 有効な範囲に制限
+        if (startZ < minCourseZ)
+        {
+            startZ = minCourseZ;
+        }
+
+        if (endZ > maxCourseZ)
+        {
+            endZ = maxCourseZ;
+        }
 
         // Z方向に一定間隔で道路を分割
         for (float z = startZ; z < endZ; z += segmentLength)
