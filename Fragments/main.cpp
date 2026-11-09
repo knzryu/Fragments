@@ -266,9 +266,10 @@ int WINAPI WinMain(
             if (!wasLeftMousePressed)
             {
                 bulletManager.SpawnBullet(
-                    player.GetX(),
+                    player.GetCourseZ() + 1.0f,
+                    player.GetLaneOffset(),
                     1.0f,
-                    player.GetZ() + 1.0f
+                    courseManager
                 );
             }
 
@@ -355,6 +356,9 @@ int WINAPI WinMain(
         // 横移動を反映してワールド座標を更新
        //これがないと、横移動したのにxとzが前の位置のままになってしまう。　
         player.UpdateCoursePosition(courseManager);
+
+        // 弾の位置を更新
+        bulletManager.UpdateAll(deltaTime, courseManager);
 
         // プレイヤーの当たり判定範囲
         float playerMinX = player.GetX() - 0.5f;
@@ -564,6 +568,16 @@ int WINAPI WinMain(
         //障害物を配置
 		obstacleManager.DrawAll();
         
+        // コースの最後の制御点を確認
+        
+
+        DrawFormatString(
+            20, 160,
+            GetColor(255, 255, 255),
+            "Last Control Z: %.2f",
+            points.back().z
+        );
+
         //---------------------------------------
 
         // スプラインに沿った道路を描画する
@@ -574,7 +588,9 @@ int WINAPI WinMain(
         const int roadColor = GetColor(80, 80, 80);
 
         // 描画するZ座標の範囲
-        float startZ = player.GetCourseZ() - 100.0f;
+        float startZ = floorf(
+            (player.GetCourseZ() - 100.0f) / segmentLength
+        ) * segmentLength;
         float endZ = player.GetCourseZ() + 200.0f;
 
         // Z方向に一定間隔で道路を分割
@@ -722,7 +738,7 @@ int WINAPI WinMain(
             );
         }
         
-        bulletManager.UpdateAll(deltaTime);
+        bulletManager.UpdateAll(deltaTime, courseManager);
         bulletManager.DrawAll();
 
         // 描画結果を画面に反映

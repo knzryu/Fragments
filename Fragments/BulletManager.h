@@ -1,8 +1,9 @@
-#ifndef BULLET_MANAGER_H
+#ifndef BULLET_MANAGER_H 
 #define BULLET_MANAGER_H
 
 #include <vector>
 #include "Bullet.h"
+#include "CourseManager.h"
 
 class BulletManager
 {
@@ -15,10 +16,10 @@ public:
     void Initialize();
 
     // 弾の生成
-    void SpawnBullet(float x, float y, float z);
+    void SpawnBullet(float courseZ, float laneOffset, float y,const CourseManager& courseManager);
 
     // すべての弾を更新
-    void UpdateAll(float deltaTime);
+    void UpdateAll(float deltaTime,const CourseManager& courseManager);
 
     // すべての弾を描画
     void DrawAll();

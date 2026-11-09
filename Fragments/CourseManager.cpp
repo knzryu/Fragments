@@ -49,6 +49,7 @@ const std::vector<CoursePoint>&
 CourseManager::GetControlPoints() const
 {
 	return controlPoints;
+
 }
 
 

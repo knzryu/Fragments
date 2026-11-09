@@ -7,23 +7,25 @@ void BulletManager::Initialize()
 }
 
 // 弾の生成
-void BulletManager::SpawnBullet(float x, float y, float z)
+void BulletManager::SpawnBullet(float courseZ, float laneOffset, float y,const CourseManager& courseManager)
 {
     Bullet bullet;
 
-    bullet.x = x;
-    bullet.y = y;
-    bullet.z = z;
+	bullet.courseZ = courseZ;
+	bullet.laneOffset = laneOffset;
+	bullet.y = y;
+
+	bullet.UpdatePosition(courseManager);
 
     bullets.push_back(bullet);
 }
 
 // すべての弾を更新
-void BulletManager::UpdateAll(float deltaTime)
+void BulletManager::UpdateAll(float deltaTime,const CourseManager& courseManager)
 {
     for (int i = 0; i < static_cast<int>(bullets.size()); i++)
     {
-        bullets[i].Update(deltaTime);
+        bullets[i].Update(deltaTime, courseManager);
     }
 }
 

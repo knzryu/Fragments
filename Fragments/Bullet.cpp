@@ -2,10 +2,26 @@
 #include "Bullet.h"
 
 //弾移動処理
-void Bullet::Update(float deltaTime)
+void Bullet::Update(float deltaTime,const CourseManager& courseManager)
 {
-    //速度×経過時間でZ座標更新する
-    z += speed * deltaTime;
+    if(!active)
+    {
+        return;
+	}
+	//弾のコース上の位置を更新する
+    courseZ += speed * deltaTime;
+
+    // ワールド座標を更新
+    UpdatePosition(courseManager);
+}
+
+void Bullet::UpdatePosition(const CourseManager& courseManager)
+{
+    CoursePoint center = courseManager.GetPosition(courseZ);
+    CoursePoint right = courseManager.GetRight(courseZ);
+
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
 }
 
 //描画処理
