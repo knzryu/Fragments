@@ -166,6 +166,12 @@ int WINAPI WinMain(
         
         gameManager.Update(deltaTime, courseManager);
 
+        // プレイヤーの進行位置に合わせてコースを追加生成
+        courseManager.UpdateCourse(player.GetCourseZ());
+
+		// プレイヤーの進行位置に合わせて古い制御点を削除 
+        courseManager.RemoveOldPoints(player.GetCourseZ());
+
         player.UpdateCoursePosition(courseManager);
 
         //毎フレーム、アニメーションの時間を進める
@@ -754,8 +760,7 @@ int WINAPI WinMain(
                 GetColor(255, 0, 0)
             );
         }
-        
-        bulletManager.UpdateAll(deltaTime, courseManager);
+       
         bulletManager.DrawAll();
 
         // 描画結果を画面に反映

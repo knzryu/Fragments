@@ -44,6 +44,33 @@ void CourseManager::GeneratePoint()
 	controlPoints.push_back({ nextX, nextZ });
 }
 
+// プレイヤーの前方にコースが不足していたら追加生成
+void CourseManager::UpdateCourse(float playerCourseZ)
+{
+	// プレイヤーより300先までコースを確保する
+	float generateLimit = playerCourseZ + 300.0f;
+
+	// 最後の制御点が生成範囲に届くまで追加
+	while (controlPoints.back().z < generateLimit)
+	{
+		GeneratePoint();
+	}
+}
+
+// プレイヤーより十分後方にある制御点を削除
+void CourseManager::RemoveOldPoints(float playerCourseZ)
+{
+	// プレイヤーより150後方を削除基準にする
+	float removeLimit = playerCourseZ - 150.0f;
+
+	// 曲線計算に必要な制御点を最低4つ残す
+	while (controlPoints.size() > 4 &&
+		controlPoints[1].z < removeLimit)
+	{
+		controlPoints.erase(controlPoints.begin());
+	}
+}
+
 // 制御点を取得
 const std::vector<CoursePoint>&
 CourseManager::GetControlPoints() const

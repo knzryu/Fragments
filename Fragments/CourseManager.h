@@ -19,11 +19,18 @@ public:
     // コースの初期生成
     void Initialize();
 
+    // コースの先を追加生成する
+    void UpdateCourse(float playerCourseZ);
+
+
     // ランダムな制御点を追加
     void GeneratePoint();
 
     // 制御点を取得
     const std::vector<CoursePoint>& GetControlPoints() const;
+
+    // 古い制御点を削除する
+    void RemoveOldPoints(float playerCourseZ);
 
     // 指定したZ座標のコース上の位置を取得
     CoursePoint GetPosition(float z) const;
