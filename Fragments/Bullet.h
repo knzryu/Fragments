@@ -17,7 +17,7 @@ public:
 
 
     //弾がZ方向に進む速さ
-    float speed = 30.0f;
+    float speed = 80.0f;
 
     //弾が有効かどうかbool型
     //true：有効、false：無効

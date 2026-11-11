@@ -50,7 +50,6 @@ int previousMouseInput = 0;
 
 
 
-
 int WINAPI WinMain(
     HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -67,6 +66,99 @@ int WINAPI WinMain(
         return -1;
     }
 
+    //-----------------------------------------
+    // Skyboxモデルの読み込み
+    int skyboxHandle = MV1LoadModel(
+        "Resource/Model/SkyBox.mv1"
+    );
+
+    if (skyboxHandle == -1)
+    {
+        MessageBox(NULL, "Skybox Load Failed",
+            "Error", MB_OK);
+        DxLib_End();
+        return -1;
+    }
+
+    // テクスチャの読み込み
+    int skyboxTexture = LoadGraph(
+        "Resource/Model/Tx.png"
+    );
+
+    if (skyboxTexture == -1)
+    {
+        MessageBox(NULL, "Skybox Texture Load Failed",
+            "Error", MB_OK);
+        MV1DeleteModel(skyboxHandle);
+        DxLib_End();
+        return -1;
+    }
+
+    // テクスチャをモデルに割り当て
+    MV1SetTextureGraphHandle(
+        skyboxHandle,
+        0,
+        skyboxTexture,
+        FALSE
+    );
+
+    // マテリアル設定
+    //Diffuse（拡散反射）
+    MV1SetMaterialDifColor(
+        skyboxHandle, 0,
+        GetColorF(1.0, 1.0, 1.0, 1.0)
+    );
+    /*
+    //Specular（鏡面反射）
+    MV1SetMaterialSpcColor(
+        skyboxHandle, 0,
+        GetColorF(0, 0, 0, 1)
+    );
+
+    //Emissive (自己発光）
+    MV1SetMaterialEmiColor(
+        skyboxHandle, 0,
+        GetColorF(1, 1, 1, 1)
+    );
+
+    //Ambient (環境反射）
+    MV1SetMaterialAmbColor(
+        skyboxHandle, 0,
+        GetColorF(0, 0, 0, 1)
+    );
+
+    //SpecularPower (鏡面反射の強さ）
+    MV1SetMaterialSpcPower(
+        skyboxHandle, 0, 0.0f
+    );*/
+   
+
+
+    // SkyBoxのスケール設定
+    MV1SetScale(
+        skyboxHandle,
+        VGet(0.001f, 0.001f, 0.0015f)
+    );
+
+
+    // SkyBoxのメッシュ数を取得
+    int meshNum = MV1GetMeshNum(skyboxHandle);
+
+    // すべてのメッシュで裏面カリングを無効にする
+    for (int i = 0; i < meshNum; i++)
+    {
+        MV1SetMeshBackCulling(skyboxHandle, i, FALSE);
+    }
+
+
+    //Zバッファを使用しない
+    // Skyboxの奥行き判定を無効化
+    MV1SetUseZBuffer(skyboxHandle, FALSE);
+
+    // Skyboxの奥行き情報を書き込まない
+    MV1SetWriteZBuffer(skyboxHandle, FALSE);
+
+    //-----------------------------------------
 
 
     // マウスカーソルを表示
@@ -88,8 +180,7 @@ int WINAPI WinMain(
     GameManager gameManager;
     gameManager.Initialize(courseManager);
 
-  
-
+    
 
     //プレイヤークラスを参照
     Player& player = gameManager.GetPlayer();
@@ -503,6 +594,25 @@ int WINAPI WinMain(
         // 画面を消去する
         ClearDrawScreen();
 
+		//---------------------------------------
+       
+
+        // SkyBoxの描画
+        // SkyBoxをカメラ位置に追従させる
+        MV1SetPosition(skyboxHandle, cameraPos);
+
+        // SkyBoxはライティングの影響を受けない
+        SetUseLighting(FALSE);
+
+        // SkyBoxを描画
+        MV1DrawModel(skyboxHandle);
+
+        // ライティングを元に戻す
+        SetUseLighting(TRUE);
+
+
+		//---------------------------------------
+
         //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
         gameManager.Draw();
 
@@ -778,6 +888,10 @@ int WINAPI WinMain(
             }
 
             // それ以外のキーなら再スタート
+
+            // コースを初期状態に戻す
+            courseManager.Initialize();
+
             ResetGame(
                 gameManager,
                 courseManager,
