@@ -138,6 +138,7 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="Collision.cpp" />
+    <ClCompile Include="CombatManager.cpp" />
     <ClCompile Include="CourseManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyManager.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="BulletManager.h" />
     <ClInclude Include="Collision.h" />
+    <ClInclude Include="CombatManager.h" />
     <ClInclude Include="CourseManager.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemyManager.h" />

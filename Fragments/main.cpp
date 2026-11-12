@@ -12,6 +12,8 @@
 #include "Spline.h"
 #include "CourseManager.h"
 #include <algorithm>
+#include"CombatManager.h"
+
 
 // ゲームの状態をリセットする関数
 void ResetGame(
@@ -66,7 +68,7 @@ int WINAPI WinMain(
         return -1;
     }
 
-    //-----------------------------------------
+    //----------------------------------------------------------
     // Skyboxモデルの読み込み
     int skyboxHandle = MV1LoadModel(
         "Resource/Model/SkyBox.mv1"
@@ -133,7 +135,6 @@ int WINAPI WinMain(
     );*/
    
 
-
     // SkyBoxのスケール設定
     MV1SetScale(
         skyboxHandle,
@@ -158,7 +159,7 @@ int WINAPI WinMain(
     // Skyboxの奥行き情報を書き込まない
     MV1SetWriteZBuffer(skyboxHandle, FALSE);
 
-    //-----------------------------------------
+    //---------------------------------------------------------
 
 
     // マウスカーソルを表示
@@ -197,7 +198,8 @@ int WINAPI WinMain(
 	// BulletManagerを取得 
     BulletManager& bulletManager = gameManager.GetBulletManager();
 
-   
+    // 戦闘管理オブジェクト
+    CombatManager combatManager;
    
     //能力選択の状態
     bool isSelectingAbility = false;
@@ -456,6 +458,20 @@ int WINAPI WinMain(
 
         // 弾の位置を更新
         bulletManager.UpdateAll(deltaTime, courseManager);
+
+        //戦闘処理をCombatManagerに依頼
+        bool isLevelUp = combatManager.Update(
+            enemyManager,
+            bulletManager,
+            progress
+        );
+
+        //レベルアップしたら能力選択画面へ
+        if (isLevelUp)
+        {
+            isSelectingAbility = true;
+        }
+
 
         // プレイヤーの当たり判定範囲
         float playerMinX = player.GetX() - 0.5f;
