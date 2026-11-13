@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="BulletManager.cpp" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="CombatManager.cpp" />
     <ClCompile Include="CourseManager.cpp" />
@@ -147,12 +148,14 @@
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="ObstacleManager.cpp" />
     <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerProgress.cpp" />
     <ClCompile Include="Spline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="BulletManager.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="CombatManager.h" />
     <ClInclude Include="CourseManager.h" />
@@ -162,6 +165,7 @@
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="ObstacleManager.h" />
     <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerProgress.h" />
     <ClInclude Include="Spline.h" />
   </ItemGroup>

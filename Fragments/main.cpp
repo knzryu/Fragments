@@ -13,28 +13,23 @@
 #include "CourseManager.h"
 #include <algorithm>
 #include"CombatManager.h"
-
+#include "PlayerController.h"
+#include "Camera.h"
 
 // ゲームの状態をリセットする関数
 void ResetGame(
     GameManager& gameManager,
+    PlayerController& playerController,
     const CourseManager& courseManager,
     float& nextObstacleZ,
     bool& gameOver,
-    bool& isDashing,
-    bool& dashUsed,
-    float& dashTimer,
-    int& dashDirection,
     int& previousTime)
 {
     //ゲーム全体を初期状態に戻す
     gameManager.ResetRun(courseManager);
 
     // ダッシュの状態を初期化
-    isDashing = false;
-    dashUsed = false;
-    dashTimer = 0.0f;
-    dashDirection = 0;
+    playerController.Reset();
 
     // 次の障害物の生成位置を初期化
     nextObstacleZ = 50.0f;
@@ -170,7 +165,7 @@ int WINAPI WinMain(
     SetWriteZBuffer3D(TRUE);
 
     // カメラに映す奥行きの範囲
-    SetCameraNearFar(0.1f, 1000.0f);
+    SetCameraNearFar(0.1f, 2000.0f);
 
 
     //コースの管理
@@ -198,8 +193,13 @@ int WINAPI WinMain(
 	// BulletManagerを取得 
     BulletManager& bulletManager = gameManager.GetBulletManager();
 
+    PlayerController playerController;
+
     // 戦闘管理オブジェクト
     CombatManager combatManager;
+
+    Camera camera;
+    
    
     //能力選択の状態
     bool isSelectingAbility = false;
@@ -208,14 +208,7 @@ int WINAPI WinMain(
 
     int previousTime = GetNowCount();
 
-    // ダッシュの設定
-    float dashSpeed = 20.0f;       // ダッシュ中の移動量（1フレームあたり）
-    float dashDuration = 0.4f;    // ダッシュの持続時間（秒）
-    float dashTimer = 0.0f;       // ダッシュの経過時間
-
-    bool isDashing = false;
-    bool dashUsed = false;
-    int dashDirection = 0;
+ 
 
     float obstacleSpacing = 25.0f;
     float nextObstacleZ = 50.0f;
@@ -228,13 +221,10 @@ int WINAPI WinMain(
 
     ResetGame(
         gameManager,
+        playerController,
         courseManager,
         nextObstacleZ,
         gameOver,
-        isDashing,
-        dashUsed,
-        dashTimer,
-        dashDirection,
         previousTime
     );
 
@@ -259,12 +249,16 @@ int WINAPI WinMain(
         
         gameManager.Update(deltaTime, courseManager);
 
+        playerController.Update(player, deltaTime);
+
         // プレイヤーの進行位置に合わせてコースを追加生成
         courseManager.UpdateCourse(player.GetCourseZ());
 
 		// プレイヤーの進行位置に合わせて古い制御点を削除 
         courseManager.RemoveOldPoints(player.GetCourseZ());
 
+        // 横移動を反映してワールド座標を更新
+        //これがないと、横移動したのにxとzが前の位置のままになってしまう。
         player.UpdateCoursePosition(courseManager);
 
         //毎フレーム、アニメーションの時間を進める
@@ -287,72 +281,9 @@ int WINAPI WinMain(
             // 次の生成位置を更新
             nextObstacleZ += obstacleSpacing;
         }
-
-        // ダッシュ開始
-        if (CheckHitKey(KEY_INPUT_SPACE) && !dashUsed)
-        {
-            if (CheckHitKey(KEY_INPUT_A))
-            {
-                dashDirection = -1;
-                isDashing = true;
-                dashTimer = 0.0f;
-                dashUsed = true;
-            }
-            else if (CheckHitKey(KEY_INPUT_D))
-            {
-                dashDirection = 1;
-                isDashing = true;
-                dashTimer = 0.0f;
-                dashUsed = true;
-            }
-        }
-
-        // Spaceを離したら、次のダッシュを許可する
-        if (!CheckHitKey(KEY_INPUT_SPACE))
-        {
-            dashUsed = false;
-        }
-
-        // ダッシュ中の処理
-        if (isDashing)
-        {
-            // Spaceを離したら即終了
-            if (!CheckHitKey(KEY_INPUT_SPACE))
-            {
-                isDashing = false;
-            }
-            else
-            {
-                player.SetLaneOffset(
-                    player.GetLaneOffset()
-                    + dashDirection * dashSpeed * deltaTime
-                );
-
-                // ダッシュの経過時間を更新
-                dashTimer += deltaTime;
-
-                // 0.4秒経過したら終了
-                if (dashTimer >= dashDuration)
-                {
-                    isDashing = false;
-                }
-            }
-        }
-        else
-        {
-            // 通常の左右移動
-            if (CheckHitKey(KEY_INPUT_A))
-            {
-                player.MoveLeft(deltaTime);
-            }
-
-            if (CheckHitKey(KEY_INPUT_D))
-            {
-                player.MoveRight(deltaTime);
-            }
-        }
-
        
+        // カメラを設定
+        camera.Update(player, courseManager);
 
 
         // マウスのボタン状態を取得
@@ -435,26 +366,7 @@ int WINAPI WinMain(
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
         previousMouseInput = mouseInput;
 
-        // コースから外れないようにする
-        // コースの中心位置を取得
        
-        // コースの左右の境界
-        const float roadLimit = 8.0f;
-
-        // 横方向の移動量を制限
-        if (player.GetLaneOffset() < -roadLimit)
-        {
-            player.SetLaneOffset(-roadLimit);
-        }
-
-        if (player.GetLaneOffset() > roadLimit)
-        {
-            player.SetLaneOffset(roadLimit);
-        }
-        
-        // 横移動を反映してワールド座標を更新
-       //これがないと、横移動したのにxとzが前の位置のままになってしまう。　
-        player.UpdateCoursePosition(courseManager);
 
         // 弾の位置を更新
         bulletManager.UpdateAll(deltaTime, courseManager);
@@ -503,110 +415,9 @@ int WINAPI WinMain(
             }
         }
 
-        // 敵が生存している場合だけ、弾との当たり判定を行う
-        // すべての敵と弾の当たり判定を行う
-        for (int e = 0; e < enemyManager.GetCount(); e++)
-        {
-		
-            Enemy& enemy = enemyManager.GetEnemy(e);
-            // 倒された敵は判定しない
-            if (enemy.hp <= 0)
-            {
-                continue;
-            }
-
-            // 敵の当たり判定範囲
-            float enemyMinX = enemy.x - 0.5f;
-            float enemyMaxX = enemy.x + 0.5f;
-            float enemyMinY = enemy.y;
-            float enemyMaxY = enemy.y + 2.0f;
-            float enemyMinZ = enemy.z - 0.5f;
-            float enemyMaxZ = enemy.z + 0.5f;
-
-            // すべての弾を後ろから確認する
-            for (int i = bulletManager.GetCount() - 1; i >= 0; i--)
-            {
-
-                // 無効な弾は判定しない 
-                if (!bulletManager.GetBullet(i).active)
-                {
-                    continue;
-                }
-
-                // 弾の当たり判定範囲
-                float bulletMinX = bulletManager.GetBullet(i).x - 0.15f;
-                float bulletMaxX = bulletManager.GetBullet(i).x + 0.15f;
-                float bulletMinY = bulletManager.GetBullet(i).y - 0.15f;
-                float bulletMaxY = bulletManager.GetBullet(i).y + 0.15f;
-                float bulletMinZ = bulletManager.GetBullet(i).z - 0.15f;
-                float bulletMaxZ = bulletManager.GetBullet(i).z + 0.15f;
-
-                // 敵と弾が重なっているか
-                bool isHit = IsCollidingAABB(
-                    bulletMinX, bulletMaxX,
-                    bulletMinY, bulletMaxY,
-                    bulletMinZ, bulletMaxZ,
-                    enemyMinX, enemyMaxX,
-                    enemyMinY, enemyMaxY,
-                    enemyMinZ, enemyMaxZ
-                );
-
-                if (isHit)
-                {
-                    //ダメージを与える前のHPを記録
-                    int previousHP = enemy.hp;
-
-                    //1ダメージを与える
-                    enemy.TakeDamage(1);
-                    
-                    //HPが正の値から0になった瞬間だけ撃破数を増やす
-                    if (previousHP > 0 && enemy.hp == 0)
-                    {
-                        // レベルアップ前のレベルを記録
-                        int previousLevel = progress.GetPlayerLevel();
-
-                        // 撃破数を増やす
-                        progress.AddDefeatedEnemyCount();
-
-                        // 経験値を獲得
-                        progress.AddExperience(10);
-
-                        // レベルが上がったか確認
-                        if (progress.GetPlayerLevel() > previousLevel)
-                        {
-                            isSelectingAbility = true;
-                        }
-                    }
-                    // 命中した弾を削除
-                    bulletManager.GetBullet(i).active = false;
-                }
-            }
-        }
-
-        bulletManager.RemoveInactiveBullets();
-
-        // スプラインから現在位置の進行方向を取得
-        CoursePoint cameraDirection =
-            courseManager.GetDirection(player.GetCourseZ());
-
-
-        // カメラの位置：プレイヤーの後方
-        VECTOR cameraPos = VGet(
-            player.GetX() - cameraDirection.x * 5.0f,
-            4.5f,
-            player.GetZ() - cameraDirection.z * 5.0f
-        );
-
-        // カメラの注視点：プレイヤーの前方
-        VECTOR cameraTarget = VGet(
-            player.GetX() + cameraDirection.x * 6.0f,
-            1.5f,
-            player.GetZ() + cameraDirection.z * 6.0f
-        );
-
-        // カメラを設定
-        SetCameraPositionAndTarget_UpVecY(cameraPos, cameraTarget);
-
+       
+     
+       
         // 画面を消去する
         ClearDrawScreen();
 
@@ -615,7 +426,7 @@ int WINAPI WinMain(
 
         // SkyBoxの描画
         // SkyBoxをカメラ位置に追従させる
-        MV1SetPosition(skyboxHandle, cameraPos);
+        MV1SetPosition(skyboxHandle, camera.GetPosition());
 
         // SkyBoxはライティングの影響を受けない
         SetUseLighting(FALSE);
@@ -910,13 +721,10 @@ int WINAPI WinMain(
 
             ResetGame(
                 gameManager,
+                playerController,
                 courseManager,
                 nextObstacleZ,
                 gameOver,
-                isDashing,
-                dashUsed,
-                dashTimer,
-                dashDirection,
                 previousTime
             );
 

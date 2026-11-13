@@ -19,7 +19,7 @@ private:
     float z = 0.0f;
     
     //ˆÚ“®‘¬“x
-    float forwardSpeed = 10.0f;
+    float forwardSpeed = 10.0f; 
     //¶‰E
 	float sideSpeed = 5.0f;
 

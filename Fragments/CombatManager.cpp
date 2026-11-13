@@ -16,7 +16,7 @@ bool CombatManager::Update(
         Enemy& enemy = enemyManager.GetEnemy(e);
 
         // “|‚³‚ê‚½“G‚Í”»’è‚µ‚È‚¢
-        if (enemy.hp <= 0)
+        if (enemy.IsDead())
         {
             continue;
         }
@@ -61,13 +61,13 @@ bool CombatManager::Update(
             if (isHit)
             {
                 // ƒ_ƒ[ƒW‚ğ—^‚¦‚é‘O‚ÌHP
-                int previousHP = enemy.hp;
+                int previousHP = enemy.GetHP();
 
                 // ƒ_ƒ[ƒW‚ğ—^‚¦‚é
                 enemy.TakeDamage(1);
 
                 // “G‚ğ“|‚µ‚½uŠÔ‚¾‚¯•ñV‚ğ—^‚¦‚é
-                if (previousHP > 0 && enemy.hp == 0)
+                if (previousHP > 0 && enemy.IsDead())
                 {
                     int previousLevel = progress.GetPlayerLevel();
 
@@ -88,7 +88,7 @@ bool CombatManager::Update(
                 bullet.active = false;
 
                 // “G‚ğ“|‚µ‚½‚çc‚è‚Ì’e‚Æ‚Ì”»’è‚ğI—¹
-                if (enemy.hp <= 0)
+                if (enemy.IsDead())
                 {
                     break;
                 }

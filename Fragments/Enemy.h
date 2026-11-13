@@ -5,6 +5,10 @@
 
 class Enemy
 {
+private:
+    //HPはEnemy自身が管理
+    int hp = 3;
+
 public:
     // ワールド座標
     float x = 0.0f;
@@ -15,8 +19,6 @@ public:
     float courseZ = 20.0f;
     float laneOffset = 0.0f;
 
-    int hp = 3;
-
     void Draw();
 
     // 敵の初期化
@@ -25,6 +27,11 @@ public:
     // コース情報からワールド座標を更新
     void UpdatePosition(const CourseManager& courseManager);
 
+
+    //HPを取得
+    int GetHP() const;
+    //敵が倒されているか確認
+    bool IsDead() const;
     // 受けたダメージ分だけHPを減らす
     void TakeDamage(int damage);
 };

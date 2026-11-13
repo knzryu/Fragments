@@ -38,10 +38,28 @@ void Enemy::Draw()
 //TakeDamageの処理中身
 void Enemy::TakeDamage(int damage)
 {
+    //0以下のダメージは受け付けない
+    if (hp < 0)
+    {
+        hp = 0;
+    }
+
     hp -= damage;
 
     if (hp < 0)
     {
         hp = 0;
     }
+}
+
+//HPを取得
+int Enemy::GetHP() const
+{
+    return hp;
+}
+
+//敵が倒されているか確認する
+bool Enemy::IsDead() const
+{
+    return hp <= 0;
 }
