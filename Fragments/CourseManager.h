@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Spline.h"
 #include <vector>
 #include <random>
@@ -8,7 +6,7 @@ class CourseManager
 {
 private:
 
-    // コースの制御点
+    // コースの制御点を複数保存する配列
     std::vector<CoursePoint> controlPoints;
 
     // 乱数生成器

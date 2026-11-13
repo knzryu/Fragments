@@ -1,17 +1,26 @@
-#include <cmath>
+#include <cmath>  //数学関数を利用する
 #include "CourseManager.h"
-#include <algorithm>
+#include <algorithm>　//std::maxやstd::minを利用する
 
-//コースの初期生成
+//コースの初期生成  初期化関数
 void CourseManager::Initialize()
 {
+	//clearは、vectorに保存されている要素を全て削除する関数
+	//なぜ必要なのか？Initialize() が複数回呼び出された場合、以前の制御点が残ってしまうのを防ぐため
+	//clear() は要素を削除するが、通常はvectorの確保済み容量までは解放しない。
 	controlPoints.clear();
 
 	// 乱数を初期化
+	//random_device は乱数の種（シード）を取得するために使用するもの。
+	//なぜ乱数の種が必要なの？
+	//例えば、乱数生成器に毎回同じシードを与えると、基本的に同じ乱数の並びが生成される。
+	// 異なるシードを与えれば、異なる並びになることが期待できる。
 	std::random_device rd;
+	//seed() は乱数生成器の初期状態を設定する関数。
 	randomEngine.seed(rd());
 
 	//最初の制御点を設定
+	//push_back最後に要素を追加
 	controlPoints.push_back({ 0.0f, -60.0f });
 	controlPoints.push_back({ 0.0f, -30.0f });
 	controlPoints.push_back({ 0.0f,   0.0f });
