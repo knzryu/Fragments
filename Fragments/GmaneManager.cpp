@@ -1,5 +1,6 @@
 #include "GameManager.h"
 
+
 //ゲームの初期化
 void GameManager::Initialize(const CourseManager& courseManager)
 {
@@ -36,6 +37,16 @@ Player& GameManager::GetPlayer()
 	return player;
 }
 
+GameState GameManager::GetGameState() const
+{
+	return gameState;
+}
+
+void GameManager::SetGameState(GameState state)
+{
+	gameState = state;
+}
+
 // プレイヤーの成長・進行状況を取得
 PlayerProgress& GameManager::GetPlayerProgress()
 {
@@ -60,6 +71,15 @@ BulletManager& GameManager::GetBulletManager()
 	return bulletManager;
 }
 
+// 戦闘処理を実行
+bool GameManager::UpdateCombat()
+{
+	return combatManager.Update(
+		enemyManager,
+		bulletManager,
+		playerProgress
+	);
+}
 
 //gameManagerにリセット処理もまかせた
 //ゲーム全体をリセット新しいランの状態に戻す

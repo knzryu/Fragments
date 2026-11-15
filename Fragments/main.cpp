@@ -372,12 +372,7 @@ int WINAPI WinMain(
         bulletManager.UpdateAll(deltaTime, courseManager);
 
         //戦闘処理をCombatManagerに依頼
-        bool isLevelUp = combatManager.Update(
-            enemyManager,
-            bulletManager,
-            progress
-        );
-
+        bool isLevelUp = gameManager.UpdateCombat();
         //レベルアップしたら能力選択画面へ
         if (isLevelUp)
         {

@@ -6,10 +6,16 @@
 #include "EnemyManager.h"
 #include "BulletManager.h"
 #include "CourseManager.h"
+#include "CombatManager.h"
+#include "GameState.h"
+
 
 class GameManager
 {
 private:
+
+	GameState gameState = GameState::Playing;
+
 
 	//プレイヤーオブジェクト
 	Player player;
@@ -17,14 +23,17 @@ private:
 	//プレイヤーの成長・進行状況管理
 	PlayerProgress playerProgress;
 
-	//障害物管理オブジェクト
+	//障害物管理
 	ObstacleManager obstacleManager;
 
-	//敵オブジェクトの管理
+	//敵の管理
 	EnemyManager enemyManager;
 
-	//弾管理オブジェクト　
+	//弾管理
 	BulletManager bulletManager;
+
+	// 戦闘管理
+	CombatManager combatManager;
 
 public:
 	//ゲームの初期化
@@ -35,6 +44,12 @@ public:
 
 	//ゲームの更新
 	void Update(float deltaTime, const CourseManager& courseManager);
+
+	// ゲーム状態を取得
+	GameState GetGameState() const;
+
+	// ゲーム状態を変更
+	void SetGameState(GameState state);
 
 	//ゲームの描画
 	void Draw();
@@ -71,6 +86,9 @@ public:
 
 	// 次のレベルに必要な経験値を取得する
 	int GetNextLevelExp() const;
+
+	// 戦闘処理を実行 
+	bool UpdateCombat();
 
 };
 
