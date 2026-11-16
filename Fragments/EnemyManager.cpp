@@ -53,7 +53,7 @@ void EnemyManager::DrawAll()
 {
     for (int i = 0; i < static_cast<int>(enemies.size()); i++)
     {
-        if (enemies[i].IsDead())
+        if (!enemies[i].IsDead())
         {
             enemies[i].Draw();
         }

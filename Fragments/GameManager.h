@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include "Player.h"
 #include "ObstacleManager.h"
@@ -88,7 +90,11 @@ public:
 	int GetNextLevelExp() const;
 
 	// 戦闘処理を実行 
-	bool UpdateCombat();
+	// 弾の更新と戦闘処理を実行
+	bool UpdateBulletsAndCombat(
+		float deltaTime,
+		const CourseManager& courseManager
+	);
 
 };
 

@@ -4,39 +4,6 @@
 
 class Player
 {
-private:
-
-    //3Dモデル
-    int modelHandle = -1;
-
-    int attachIndex = -1;
-    float animTime = 0.0f;
-    float animTotalTime = 0.0f;
-    float animSpeed = 0.03f;
-
-    //プレイヤーの座標
-	float x = 0.0f;
-    float z = 0.0f;
-    
-    //移動速度
-    float forwardSpeed = 10.0f; 
-    //左右
-	float sideSpeed = 5.0f;
-
-    //プレイヤーの能力値
-    int attackPower = 1;
-    float bulletSpeed = 30.0f;
-
-    // コース上の進行位置
-    float courseZ = 0.0f;
-
-    // コースの進行方向
-    float directionX = 0.0f;
-    float directionZ = 1.0f;
-
-    // コース中心からの横方向の距離
-    float laneOffset = 0.0f;
-
 public:
 
     //モデルの解放
@@ -92,6 +59,46 @@ public:
 
     //プレイヤー描画関数、宣言だけ中身の処理は.cppに
     void Draw();
+
+private:
+
+    //3Dモデル
+    int modelHandle = -1;
+
+    int attachIndex = -1;
+    float animTime = 0.0f;
+    float animTotalTime = 0.0f;
+    float animSpeed = 0.03f;
+
+    //プレイヤーの座標
+    float x = 0.0f;
+    float z = 0.0f;
+
+    //------------</初期ステータス/>-----------------
+
+        //移動速度   constexprで初期値を定数にする
+    static constexpr float INITIAL_FORWARD_SPEED = 10.0f;
+    //左右
+    static constexpr float INITIAL_SIDE_SPEED = 5.0;
+
+    float forwardSpeed = INITIAL_FORWARD_SPEED;
+    float sideSpeed = INITIAL_SIDE_SPEED;
+
+    //プレイヤーの能力値
+    int attackPower = 1;
+    float bulletSpeed = 30.0f;
+
+
+    // コース上の進行位置
+    float courseZ = 0.0f;
+
+    // コースの進行方向
+    float directionX = 0.0f;
+    float directionZ = 1.0f;
+
+    // コース中心からの横方向の距離
+    float laneOffset = 0.0f;
+
 };
 
 #endif

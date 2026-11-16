@@ -12,7 +12,6 @@
 #include "Spline.h"
 #include "CourseManager.h"
 #include <algorithm>
-#include"CombatManager.h"
 #include "PlayerController.h"
 #include "Camera.h"
 
@@ -209,7 +208,6 @@ int WINAPI WinMain(
     int previousTime = GetNowCount();
 
  
-
     float obstacleSpacing = 25.0f;
     float nextObstacleZ = 50.0f;
 
@@ -366,18 +364,19 @@ int WINAPI WinMain(
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
         previousMouseInput = mouseInput;
 
-       
+        
 
-        // 弾の位置を更新
-        bulletManager.UpdateAll(deltaTime, courseManager);
-
-        //戦闘処理をCombatManagerに依頼
-        bool isLevelUp = gameManager.UpdateCombat();
+        // GameManagerに弾の更新と戦闘処理を依頼
+        bool isLevelUp = gameManager.UpdateBulletsAndCombat(
+            deltaTime,
+            courseManager
+        );
         //レベルアップしたら能力選択画面へ
         if (isLevelUp)
         {
             isSelectingAbility = true;
         }
+
 
 
         // プレイヤーの当たり判定範囲
@@ -474,17 +473,6 @@ int WINAPI WinMain(
             }
         }
       
-        //敵を描画
-       // 生存している敵をすべて描画
-		enemyManager.DrawAll();
-
-        // 敵の数を確認
-        DrawFormatString(
-            20, 95,
-            GetColor(255, 255, 0),
-            "Enemy Count: %d",
-            enemyManager.GetCount()
-        );
 
         // 各敵の座標とHPを確認
         for (int i = 0; i < enemyManager.GetCount(); i++)

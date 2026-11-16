@@ -72,8 +72,14 @@ BulletManager& GameManager::GetBulletManager()
 }
 
 // 戦闘処理を実行
-bool GameManager::UpdateCombat()
+bool GameManager::UpdateBulletsAndCombat(
+    float deltaTime,
+	const CourseManager& courseManager)
 {
+	// 1.　すべての弾を更新
+	bulletManager.UpdateAll(deltaTime, courseManager);
+
+	// 2. 弾と敵の当たり判定・ダメージ処理
 	return combatManager.Update(
 		enemyManager,
 		bulletManager,

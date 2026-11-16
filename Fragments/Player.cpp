@@ -8,7 +8,7 @@ void Player::Initialize()
     //初期化処理
     x = 0.0f;
     z = 0.0f;
-    forwardSpeed = 30.0f;
+    forwardSpeed = 10.0f;
     sideSpeed = 5.0f;
 
     courseZ = 0.0f;
@@ -59,8 +59,8 @@ void Player::Reset()
     laneOffset = 0.0f;
 
     // 移動速度を初期化
-    forwardSpeed = 30.0f;
-    sideSpeed = 5.0f;
+    forwardSpeed = INITIAL_FORWARD_SPEED;
+    sideSpeed = INITIAL_SIDE_SPEED;
 
     // アニメーションを最初から再生
     animTime = 0.0f;
