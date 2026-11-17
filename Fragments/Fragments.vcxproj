@@ -150,6 +150,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerProgress.cpp" />
+    <ClCompile Include="ResultScene.cpp" />
     <ClCompile Include="Spline.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -168,6 +169,9 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerProgress.h" />
+    <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="ResultData.h" />
+    <ClInclude Include="ResultScene.h" />
     <ClInclude Include="Spline.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,5 @@
 #include "GameManager.h"
-
+#include "ResultData.h"
 
 //ゲームの初期化
 void GameManager::Initialize(const CourseManager& courseManager)
@@ -10,6 +10,11 @@ void GameManager::Initialize(const CourseManager& courseManager)
 	enemyManager.Initialize(courseManager);
 
 	bulletManager.Initialize();
+
+	// リザルト関連データを初期化
+	survivalTime = 0.0f;
+	resultData = ResultData{};
+	resultInitialized = false;
 }
 
 
@@ -18,6 +23,9 @@ void GameManager::Update(
 	float deltaTime,
 	const CourseManager& courseManager)
 {
+	//生存時間を加算
+	survivalTime += deltaTime;
+
 	// コース上の進行位置を更新
 	player.MoveForward(deltaTime);
 
@@ -44,7 +52,28 @@ GameState GameManager::GetGameState() const
 
 void GameManager::SetGameState(GameState state)
 {
+	//GameOverに初めて遷移するときだけ結果を保存
+	if (state == GameState::GameOver && gameState != GameState::GameOver && !resultInitialized)
+	{
+		CreateResult();
+	}
 	gameState = state;
+}
+
+void GameManager::CreateResult()
+{
+	// 走行距離
+	resultData.distance = player.GetCourseZ();
+
+	// 敵の撃破数
+	resultData.defeatedEnemyCount =
+		playerProgress.GetDefeatedEnemyCount();
+
+	// 生存時間
+	resultData.survivalTime = survivalTime;
+
+	// 結果保存済みにする
+	resultInitialized = true;
 }
 
 // プレイヤーの成長・進行状況を取得
@@ -53,7 +82,7 @@ PlayerProgress& GameManager::GetPlayerProgress()
 	return playerProgress;
 }
 
-//障害物の
+//障害物
 ObstacleManager& GameManager::GetObstacleManager()
 {
 	return obstacleManager;
@@ -104,4 +133,10 @@ void GameManager::ResetRun(const CourseManager& courseManager)
 
 	//弾を全て削除 
 	bulletManager.Initialize();
+
+	// リザルト関連データを初期化
+	survivalTime = 0.0f;
+	resultData = ResultData{};
+	resultInitialized = false;
 }
+

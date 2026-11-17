@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cmath>  //数学関数を利用する 
+#include <cmath> //数学関数を利用する 
 #include "CourseManager.h"
-#include <algorithm>　//std::maxやstd::minを利用する 
+#include <algorithm> //std::maxやstd::minを利用する 
 
 //コースの初期生成  初期化関数
 void CourseManager::Initialize()

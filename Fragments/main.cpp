@@ -54,7 +54,7 @@ int WINAPI WinMain(
 {
     //window表示
     ChangeWindowMode(TRUE);
-    SetGraphMode(1280, 720, 32);
+    SetGraphMode(1920, 1080, 32);
 
     //Dxlib初期化
     if (DxLib_Init() == -1)
@@ -62,11 +62,28 @@ int WINAPI WinMain(
         return -1;
     }
 
+
+    //----------------------------------------------------------
+    //タイトル背景画像の読み込み
+    int titleBackgroundHandle = LoadGraph("Resource/Texture/TitleBackground.png");
+
+    if (titleBackgroundHandle == -1)
+    {
+        MessageBox(
+            NULL,
+            "Title Background Load Failed",
+            "Error",
+            MB_OK
+        );
+
+        DxLib_End();
+        return -1;
+    }
+
+
     //----------------------------------------------------------
     // Skyboxモデルの読み込み
-    int skyboxHandle = MV1LoadModel(
-        "Resource/Model/SkyBox.mv1"
-    );
+    int skyboxHandle = MV1LoadModel("Resource/Sky/SkyBox.mv1");
 
     if (skyboxHandle == -1)
     {
@@ -77,9 +94,7 @@ int WINAPI WinMain(
     }
 
     // テクスチャの読み込み
-    int skyboxTexture = LoadGraph(
-        "Resource/Model/Tx.png"
-    );
+    int skyboxTexture = LoadGraph("Resource/Sky/Tx.png");
 
     if (skyboxTexture == -1)
     {
@@ -213,16 +228,6 @@ int WINAPI WinMain(
 
 
 
-	
-
-    ResetGame(
-        gameManager,
-        playerController,
-        courseManager,
-        nextObstacleZ,
-        previousTime
-    );
-
     //Windowsから送られてくるメッセージを処理するためのDx関数
     while (ProcessMessage() == 0)
     {
@@ -291,6 +296,31 @@ int WINAPI WinMain(
         bool leftClickDown = (
             mouseInput & MOUSE_INPUT_LEFT) != 0 &&
             (previousMouseInput & MOUSE_INPUT_LEFT) == 0;
+
+
+        //タイトル画面のSTARTボタン
+        if (gameManager.GetGameState() == GameState::Title)
+        {
+            int mouseX, mouseY;
+            GetMousePoint(&mouseX, &mouseY);
+
+            //STARTボタンの範囲
+            bool isMouseOverButton =
+                mouseX >= 810 && mouseX <= 1110 &&
+                mouseY >= 700 && mouseY <= 800;
+
+            //ボタン内で左クリックした瞬間
+            if (isMouseOverButton && leftClickDown)
+            {
+                ResetGame(
+                    gameManager,
+                    playerController,
+                    courseManager,
+                    nextObstacleZ,
+                    previousTime
+                );
+            }
+        }
 
 
         // Playing中,左クリックした瞬間だけ弾を発射
@@ -406,273 +436,322 @@ int WINAPI WinMain(
         // 画面を消去する
         ClearDrawScreen();
 
-		//---------------------------------------
-       
+
+        if (gameManager.GetGameState() == GameState::Title)
+        {
+            
+            // 背景画像
+            DrawExtendGraph(
+                0, 0,1920, 1080,
+                titleBackgroundHandle,
+                TRUE
+            );
+
+            //STARTボタンの範囲
+            const int buttonLeft = 810;
+            const int buttonTop = 700;
+            const int buttonRight = 1110;
+            const int buttonBottom = 800;
+
+   
+            // マウス位置
+            int mouseX, mouseY;
+            GetMousePoint(&mouseX, &mouseY);
+
+            // ボタン上にマウスがあるか
+            bool isMouseOverButton =
+                mouseX >= buttonLeft && mouseX <= buttonRight &&
+                mouseY >= buttonTop && mouseY <= buttonBottom;
+
+            // ボタンの色を変更
+            int buttonColor = isMouseOverButton
+                ? GetColor(40, 150, 220)
+                : GetColor(20, 80, 150);
+
+            // STARTボタン
+            DrawBox(
+                buttonLeft, buttonTop,
+                buttonRight, buttonBottom,
+                buttonColor,
+                TRUE
+            );
+
+            DrawString(
+                925, 740,
+                " START",
+                GetColor(255, 255, 255)
+            );
+        }
+        else
+        {
+            //---------------------------------------
+
 
         // SkyBoxの描画
         // SkyBoxをカメラ位置に追従させる
-        MV1SetPosition(skyboxHandle, camera.GetPosition());
+            MV1SetPosition(skyboxHandle, camera.GetPosition());
 
-        // SkyBoxはライティングの影響を受けない
-        SetUseLighting(FALSE);
+            // SkyBoxはライティングの影響を受けない
+            SetUseLighting(FALSE);
 
-        // SkyBoxを描画
-        MV1DrawModel(skyboxHandle);
+            // SkyBoxを描画
+            MV1DrawModel(skyboxHandle);
 
-        // ライティングを元に戻す
-        SetUseLighting(TRUE);
+            // ライティングを元に戻す
+            SetUseLighting(TRUE);
 
 
-		//---------------------------------------
+            //---------------------------------------
 
-        //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
-        gameManager.Draw();
+               //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
+            gameManager.Draw();
 
-        // CourseManagerから制御点を取得
-        const std::vector<CoursePoint>& points =
-            courseManager.GetControlPoints();
+            // CourseManagerから制御点を取得
+            const std::vector<CoursePoint>& points =
+                courseManager.GetControlPoints();
 
-        // すべてのスプライン区間を描画
-        for (int i = 0; i < (int)points.size() - 3; i++)
-        {
-            for (int j = 0; j < 100; j++)
+            // すべてのスプライン区間を描画
+            for (int i = 0; i < (int)points.size() - 3; i++)
             {
-                float t0 = j / 100.0f;
-                float t1 = (j + 1) / 100.0f;
+                for (int j = 0; j < 100; j++)
+                {
+                    float t0 = j / 100.0f;
+                    float t1 = (j + 1) / 100.0f;
 
-                CoursePoint a = Spline::CatmullRom(
-                    points[i],
-                    points[i + 1],
-                    points[i + 2],
-                    points[i + 3],
-                    t0
-                );
+                    CoursePoint a = Spline::CatmullRom(
+                        points[i],
+                        points[i + 1],
+                        points[i + 2],
+                        points[i + 3],
+                        t0
+                    );
 
-                CoursePoint b = Spline::CatmullRom(
-                    points[i],
-                    points[i + 1],
-                    points[i + 2],
-                    points[i + 3],
-                    t1
-                );
+                    CoursePoint b = Spline::CatmullRom(
+                        points[i],
+                        points[i + 1],
+                        points[i + 2],
+                        points[i + 3],
+                        t1
+                    );
 
-                DrawLine3D(
-                    VGet(a.x, 0.1f, a.z),
-                    VGet(b.x, 0.1f, b.z),
-                    GetColor(0, 255, 255)
+                    DrawLine3D(
+                        VGet(a.x, 0.1f, a.z),
+                        VGet(b.x, 0.1f, b.z),
+                        GetColor(0, 255, 255)
+                    );
+                }
+            }
+
+
+            // 各敵の座標とHPを確認
+            for (int i = 0; i < enemyManager.GetCount(); i++)
+            {
+                Enemy& enemy = enemyManager.GetEnemy(i);
+
+                DrawFormatString(
+                    20, 120 + i * 20,
+                    GetColor(255, 255, 0),
+                    "Enemy %d: CourseZ=%.2f Offset=%.2f X=%.2f Z=%.2f",
+                    i,
+                    enemy.courseZ,
+                    enemy.laneOffset,
+                    enemy.x,
+                    enemy.z
                 );
             }
-        }
-      
 
-        // 各敵の座標とHPを確認
-        for (int i = 0; i < enemyManager.GetCount(); i++)
-        {
-            Enemy& enemy = enemyManager.GetEnemy(i);
+            //障害物を配置
+            obstacleManager.DrawAll();
 
-            DrawFormatString(
-                20, 120 + i * 20,
-                GetColor(255, 255, 0),
-                "Enemy %d: CourseZ=%.2f Offset=%.2f X=%.2f Z=%.2f",
-                i,
-                enemy.courseZ,
-                enemy.laneOffset,
-                enemy.x,
-                enemy.z
-            );
-        }
+            // コースの最後の制御点を確認
 
-        //障害物を配置
-		obstacleManager.DrawAll();
-        
-        // コースの最後の制御点を確認
-        
-
-        DrawFormatString(
-            20, 160,
-            GetColor(255, 255, 255),
-            "Last Control Z: %.2f",
-            points.back().z
-        );
-
-        //---------------------------------------
-
-        // スプラインに沿った道路を描画する
-        const float roadWidth = 10.0f;
-        const float roadHeight = 0.01f;
-        const float segmentLength = 2.0f;
-
-        const int roadColor = GetColor(80, 80, 80);
-
-        // 描画するZ座標の範囲
-        // スプラインが正常に計算できる範囲
-        float minCourseZ = points[1].z;
-        float maxCourseZ = points[points.size() - 2].z;
-
-        // 道路の描画範囲
-        float startZ = floorf(
-            (player.GetCourseZ() - 100.0f) / segmentLength
-        ) * segmentLength;
-
-        float endZ = player.GetCourseZ() + 200.0f;
-
-        // 有効な範囲に制限
-        if (startZ < minCourseZ)
-        {
-            startZ = minCourseZ;
-        }
-
-        if (endZ > maxCourseZ)
-        {
-            endZ = maxCourseZ;
-        }
-
-        // Z方向に一定間隔で道路を分割
-        for (float z = startZ; z < endZ; z += segmentLength)
-        {
-            float nextZ = z + segmentLength;
-
-            // 手前側と奥側のコース中心を取得
-            CoursePoint centerNear = courseManager.GetPosition(z);
-            CoursePoint centerFar = courseManager.GetPosition(nextZ);
-
-            // それぞれの地点の右方向を取得
-            CoursePoint rightNear = courseManager.GetRight(z);
-            CoursePoint rightFar = courseManager.GetRight(nextZ);
-
-            // 手前側の左端
-            VECTOR leftNear = VGet(
-                centerNear.x - rightNear.x * roadWidth,
-                roadHeight,
-                centerNear.z - rightNear.z * roadWidth
-            );
-
-            // 手前側の右端
-            VECTOR rightNearPos = VGet(
-                centerNear.x + rightNear.x * roadWidth,
-                roadHeight,
-                centerNear.z + rightNear.z * roadWidth
-            );
-
-            // 奥側の左端
-            VECTOR leftFar = VGet(
-                centerFar.x - rightFar.x * roadWidth,
-                roadHeight,
-                centerFar.z - rightFar.z * roadWidth
-            );
-
-            // 奥側の右端
-            VECTOR rightFarPos = VGet(
-                centerFar.x + rightFar.x * roadWidth,
-                roadHeight,
-                centerFar.z + rightFar.z * roadWidth
-            );
-
-            // 三角形その1
-            DrawTriangle3D(
-                leftNear,
-                rightNearPos,
-                leftFar,
-                roadColor,
-                TRUE
-            );
-
-            // 三角形その2
-            DrawTriangle3D(
-                rightNearPos,
-                rightFarPos,
-                leftFar,
-                roadColor,
-                TRUE
-            );
-        }
-     
-        //-----------------------------------------
-
-        //敵の撃破数を表示
-        DrawFormatString(
-            20, 20,
-            GetColor(255, 255, 255),
-            "Defeated: %d",
-            progress.GetDefeatedEnemyCount()
-        );
-
-        //経験値表示
-        // プレイヤーのレベルを表示
-        DrawFormatString(
-            20, 45,
-            GetColor(0, 255, 255),
-            "Level: %d",
-            progress.GetPlayerLevel()
-        );
-
-        // 累計経験値と次の目標を表示
-        DrawFormatString(
-            20, 70,
-            GetColor(255, 255, 0),
-            "EXP: %d / %d",
-            progress.GetExperience(),
-            progress.GetNextLevelExp()
-        );
-
-        if (gameManager.GetGameState() == GameState::AbilitySelect)
-        {
-            // 暗い背景
-            DrawBox(
-                250, 180, 1030, 530,
-                GetColor(20, 20, 40), TRUE
-            );
 
             DrawFormatString(
-                440, 215,
+                20, 160,
                 GetColor(255, 255, 255),
-                "LEVEL UP! Choose an ability"
-            );
-            // 攻撃力カード
-            DrawBox(
-                300, 280, 500, 480,
-                GetColor(100, 45, 55), TRUE
-            );
-            DrawFormatString(
-                330, 330,
-                GetColor(255, 180, 180),
-                "ATTACK +1"
+                "Last Control Z: %.2f",
+                points.back().z
             );
 
-            // 移動速度カード
-            DrawBox(
-                540, 280, 740, 480,
-                GetColor(35, 85, 60), TRUE
-            );
+            //---------------------------------------
+
+            // スプラインに沿った道路を描画する
+            const float roadWidth = 10.0f;
+            const float roadHeight = 0.01f;
+            const float segmentLength = 2.0f;
+
+            const int roadColor = GetColor(80, 80, 80);
+
+            // 描画するZ座標の範囲
+            // スプラインが正常に計算できる範囲
+            float minCourseZ = points[1].z;
+            float maxCourseZ = points[points.size() - 2].z;
+
+            // 道路の描画範囲
+            float startZ = floorf(
+                (player.GetCourseZ() - 100.0f) / segmentLength
+            ) * segmentLength;
+
+            float endZ = player.GetCourseZ() + 200.0f;
+
+            // 有効な範囲に制限
+            if (startZ < minCourseZ)
+            {
+                startZ = minCourseZ;
+            }
+
+            if (endZ > maxCourseZ)
+            {
+                endZ = maxCourseZ;
+            }
+
+            // Z方向に一定間隔で道路を分割
+            for (float z = startZ; z < endZ; z += segmentLength)
+            {
+                float nextZ = z + segmentLength;
+
+                // 手前側と奥側のコース中心を取得
+                CoursePoint centerNear = courseManager.GetPosition(z);
+                CoursePoint centerFar = courseManager.GetPosition(nextZ);
+
+                // それぞれの地点の右方向を取得
+                CoursePoint rightNear = courseManager.GetRight(z);
+                CoursePoint rightFar = courseManager.GetRight(nextZ);
+
+                // 手前側の左端
+                VECTOR leftNear = VGet(
+                    centerNear.x - rightNear.x * roadWidth,
+                    roadHeight,
+                    centerNear.z - rightNear.z * roadWidth
+                );
+
+                // 手前側の右端
+                VECTOR rightNearPos = VGet(
+                    centerNear.x + rightNear.x * roadWidth,
+                    roadHeight,
+                    centerNear.z + rightNear.z * roadWidth
+                );
+
+                // 奥側の左端
+                VECTOR leftFar = VGet(
+                    centerFar.x - rightFar.x * roadWidth,
+                    roadHeight,
+                    centerFar.z - rightFar.z * roadWidth
+                );
+
+                // 奥側の右端
+                VECTOR rightFarPos = VGet(
+                    centerFar.x + rightFar.x * roadWidth,
+                    roadHeight,
+                    centerFar.z + rightFar.z * roadWidth
+                );
+
+                // 三角形その1
+                DrawTriangle3D(
+                    leftNear,
+                    rightNearPos,
+                    leftFar,
+                    roadColor,
+                    TRUE
+                );
+
+                // 三角形その2
+                DrawTriangle3D(
+                    rightNearPos,
+                    rightFarPos,
+                    leftFar,
+                    roadColor,
+                    TRUE
+                );
+            }
+
+            //-----------------------------------------
+
+            //敵の撃破数を表示
             DrawFormatString(
-                565, 330,
-                GetColor(160, 255, 190),
-                "SPEED +2"
+                20, 20,
+                GetColor(255, 255, 255),
+                "Defeated: %d",
+                progress.GetDefeatedEnemyCount()
             );
 
-            // 弾速カード
-            DrawBox(
-                780, 280, 980, 480,
-                GetColor(35, 60, 100), TRUE
-            );
+            //経験値表示
+            // プレイヤーのレベルを表示
             DrawFormatString(
-                810, 330,
-                GetColor(170, 210, 255),
-                "BULLET +10"
+                20, 45,
+                GetColor(0, 255, 255),
+                "Level: %d",
+                progress.GetPlayerLevel()
             );
+
+            // 累計経験値と次の目標を表示
+            DrawFormatString(
+                20, 70,
+                GetColor(255, 255, 0),
+                "EXP: %d / %d",
+                progress.GetExperience(),
+                progress.GetNextLevelExp()
+            );
+
+            if (gameManager.GetGameState() == GameState::AbilitySelect)
+            {
+                // 暗い背景
+                DrawBox(
+                    250, 180, 1030, 530,
+                    GetColor(20, 20, 40), TRUE
+                );
+
+                DrawFormatString(
+                    440, 215,
+                    GetColor(255, 255, 255),
+                    "LEVEL UP! Choose an ability"
+                );
+                // 攻撃力カード
+                DrawBox(
+                    300, 280, 500, 480,
+                    GetColor(100, 45, 55), TRUE
+                );
+                DrawFormatString(
+                    330, 330,
+                    GetColor(255, 180, 180),
+                    "ATTACK +1"
+                );
+
+                // 移動速度カード
+                DrawBox(
+                    540, 280, 740, 480,
+                    GetColor(35, 85, 60), TRUE
+                );
+                DrawFormatString(
+                    565, 330,
+                    GetColor(160, 255, 190),
+                    "SPEED +2"
+                );
+
+                // 弾速カード
+                DrawBox(
+                    780, 280, 980, 480,
+                    GetColor(35, 60, 100), TRUE
+                );
+                DrawFormatString(
+                    810, 330,
+                    GetColor(170, 210, 255),
+                    "BULLET +10"
+                );
+            }
+
+            // 衝突したらゲームオーバーを表示
+            if (gameManager.GetGameState() == GameState::GameOver)
+            {
+                DrawString(
+                    600, 400,
+                    "GAME OVER",
+                    GetColor(255, 0, 0)
+                );
+            }
+
+            bulletManager.DrawAll();
         }
-
-        // 衝突したらゲームオーバーを表示
-        if (gameManager.GetGameState() == GameState::GameOver)
-        {
-            DrawString(
-                600, 400,
-                "GAME OVER",
-                GetColor(255, 0, 0)
-            );
-        }
-       
-        bulletManager.DrawAll();
 
         // 描画結果を画面に反映
         ScreenFlip();
@@ -706,6 +785,17 @@ int WINAPI WinMain(
 
     }
     
+    //読み込んだ画像を(メモリ）解放
+    // タイトル 背景画像
+    DeleteGraph(titleBackgroundHandle);
+
+    //SkyBoxのテクスチャ
+    DeleteGraph(skyboxTexture);
+
+    //SkyBoxモデル
+    MV1DeleteModel(skyboxHandle);
+
+
     DxLib_End();
 
     return 0;

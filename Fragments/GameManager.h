@@ -10,13 +10,13 @@
 #include "CourseManager.h"
 #include "CombatManager.h"
 #include "GameState.h"
-
+#include "ResultData.h"
 
 class GameManager
 {
 private:
-
-	GameState gameState = GameState::Playing;
+	//タイトルステート
+	GameState gameState = GameState::Title;
 
 
 	//プレイヤーオブジェクト
@@ -36,6 +36,15 @@ private:
 
 	// 戦闘管理
 	CombatManager combatManager;
+
+	//リザルト画面に渡すデータ
+	ResultData resultData;
+
+	//ランの経過時間
+	float survivalTime = 0.0f;
+
+	// ゲームオーバー処理が完了したか
+	bool resultInitialized = false;
 
 public:
 	//ゲームの初期化
@@ -95,6 +104,12 @@ public:
 		float deltaTime,
 		const CourseManager& courseManager
 	);
+
+	//リザルトデータを取得
+	const ResultData& GetResultData() const;
+
+	//ゲームオーバー時の結果を保存
+	void CreateResult();
 
 };
 
