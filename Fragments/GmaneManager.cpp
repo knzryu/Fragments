@@ -1,10 +1,13 @@
 #include "GameManager.h"
 #include "ResultData.h"
 
+
 //ゲームの初期化
 void GameManager::Initialize(const CourseManager& courseManager)
 {
 	player.Initialize();
+
+	combatManager.Initialize();
 
 	// 初期配置の敵を生成
 	enemyManager.Initialize(courseManager);
@@ -23,6 +26,9 @@ void GameManager::Update(
 	float deltaTime,
 	const CourseManager& courseManager)
 {
+	// クールタイムを更新
+	combatManager.UpdateCooldown(deltaTime);
+
 	//生存時間を加算
 	survivalTime += deltaTime;
 
@@ -76,6 +82,12 @@ void GameManager::CreateResult()
 	resultInitialized = true;
 }
 
+// リザルトデータを取得
+const ResultData& GameManager::GetResultData() const
+{
+	return resultData;
+}
+
 // プレイヤーの成長・進行状況を取得
 PlayerProgress& GameManager::GetPlayerProgress()
 {
@@ -99,6 +111,8 @@ BulletManager& GameManager::GetBulletManager()
 {
 	return bulletManager;
 }
+
+
 
 // 戦闘処理を実行
 bool GameManager::UpdateBulletsAndCombat(
@@ -125,6 +139,8 @@ void GameManager::ResetRun(const CourseManager& courseManager)
 
 	playerProgress.Reset();
 
+	combatManager.Initialize();
+
 	//障害物を全て削除
 	obstacleManager.Reset();
 
@@ -140,3 +156,31 @@ void GameManager::ResetRun(const CourseManager& courseManager)
 	resultInitialized = false;
 }
 
+// 弾の発射要求
+bool GameManager::TryShot(const CourseManager& courseManager)
+{
+	// 発射できない場合は終了
+	if (!combatManager.CanShot())
+	{
+		return false;
+	}
+
+	// 弾を生成
+	bulletManager.SpawnBullet(
+		player.GetCourseZ() + 1.0f,
+		player.GetLaneOffset(),
+		1.0f,
+		courseManager
+	);
+
+	// クールタイム開始
+	combatManager.StartCooldown();
+
+	return true;
+}
+
+// クールタイム取得
+float GameManager::GetShotCooldown() const
+{
+	return combatManager.GetShotTimer();
+}

@@ -9,6 +9,11 @@ void  ResultScene::Initialize(const ResultData& data)
 	resultData = data;
 }
 
+void ResultScene::Update()
+{
+    // 現段階では更新処理なし
+}
+
 //リザルト画面の更新
 void ResultScene::Draw()
 {
@@ -140,5 +145,47 @@ void ResultScene::Draw()
         "NO ITEMS",
         GetColor(120, 140, 160)
     );
+    // マウス位置
+    int mouseX, mouseY;
+    GetMousePoint(&mouseX, &mouseY);
 
+    // Retryボタン
+    bool retryHover =
+        mouseX >= 700 && mouseX <= 950 &&
+        mouseY >= 900 && mouseY <= 980;
+
+    // Titleボタン
+    bool titleHover =
+        mouseX >= 970 && mouseX <= 1220 &&
+        mouseY >= 900 && mouseY <= 980;
+
+    // Retryボタン描画
+    DrawBox(
+        700, 900, 950, 980,
+        retryHover
+        ? GetColor(40, 150, 220)
+        : GetColor(20, 80, 150),
+        TRUE
+    );
+
+    DrawString(
+        790, 930,
+        " RETRY",
+        GetColor(255, 255, 255)
+    );
+
+    // Titleボタン描画
+    DrawBox(
+        970, 900, 1220, 980,
+        titleHover
+        ? GetColor(40, 150, 220)
+        : GetColor(20, 80, 150),
+        TRUE
+    );
+
+    DrawString(
+        1060, 930,
+        " TITLE",
+        GetColor(255, 255, 255)
+    );
 }

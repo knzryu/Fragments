@@ -6,6 +6,9 @@
 
 class ObstacleManager
 {
+private:
+    std::vector<Obstacle> obstacles;
+
 public:
 	//áŠQ•¨‚ğ¶¬‚·‚éŠÖ”‚ÌéŒ¾
     void SpawnObstacle(float courseZ, const CourseManager& courseManager);
@@ -20,8 +23,7 @@ public:
 	//áŠQ•¨‚ğ‚·‚×‚Ä•`‰æ‚·‚éŠÖ”‚ÌéŒ¾
     void DrawAll();
 
-private:
-    std::vector<Obstacle> obstacles;
+
 };
 
 #endif

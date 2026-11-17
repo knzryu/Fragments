@@ -108,6 +108,12 @@ public:
 	//リザルトデータを取得
 	const ResultData& GetResultData() const;
 
+	// 射撃を試みる
+	bool TryShot(const CourseManager& courseManager);
+
+	// 射撃クールタイムの残り時間を取得
+	float GetShotCooldown() const;
+
 	//ゲームオーバー時の結果を保存
 	void CreateResult();
 

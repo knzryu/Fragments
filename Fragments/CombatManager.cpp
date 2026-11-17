@@ -2,6 +2,45 @@
 #include "Enemy.h"
 #include "Collision.h"
 
+
+// クールタイム初期化
+void CombatManager::Initialize()
+{
+    shotTimer = 0.0f;
+}
+
+// クールタイム更新
+void CombatManager::UpdateCooldown(float deltaTime)
+{
+    if (shotTimer > 0.0f)
+    {
+        shotTimer -= deltaTime;
+
+        if (shotTimer < 0.0f)
+        {
+            shotTimer = 0.0f;
+        }
+    }
+}
+
+// 発射可能か確認
+bool CombatManager::CanShot() const
+{
+    return shotTimer <= 0.0f;
+}
+
+// クールタイム開始
+void CombatManager::StartCooldown()
+{
+    shotTimer = shotCooldown;
+}
+
+// 残り時間取得
+float CombatManager::GetShotTimer() const
+{
+    return shotTimer;
+}
+
 // 敵と弾の戦闘処理
 bool CombatManager::Update(
     EnemyManager& enemyManager,

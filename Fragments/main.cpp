@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "PlayerController.h"
 #include "Camera.h"
+#include "ResultScene.h"
 
 // ゲームの状態をリセットする関数
 void ResetGame(
@@ -186,6 +187,9 @@ int WINAPI WinMain(
     CourseManager courseManager;
     courseManager.Initialize();
 
+    // リザルト画面
+    ResultScene resultScene;
+
     //プレイヤーの移動
     GameManager gameManager;
     gameManager.Initialize(courseManager);
@@ -209,8 +213,6 @@ int WINAPI WinMain(
 
     PlayerController playerController;
 
-    // 戦闘管理オブジェクト
-    CombatManager combatManager;
 
     Camera camera;
     
@@ -298,6 +300,8 @@ int WINAPI WinMain(
             (previousMouseInput & MOUSE_INPUT_LEFT) == 0;
 
 
+        bool clickConsumed = false;
+
         //タイトル画面のSTARTボタン
         if (gameManager.GetGameState() == GameState::Title)
         {
@@ -319,20 +323,64 @@ int WINAPI WinMain(
                     nextObstacleZ,
                     previousTime
                 );
+
+                clickConsumed = true;
             }
         }
 
-
-        // Playing中,左クリックした瞬間だけ弾を発射
-        if (gameManager.GetGameState() == GameState::Playing && leftClickDown)
+        // リザルト画面のボタン入力
+        if (gameManager.GetGameState() == GameState::Result && leftClickDown)
         {
-            bulletManager.SpawnBullet(
-                player.GetCourseZ() + 1.0f,
-                player.GetLaneOffset(),
-                1.0f,
-                courseManager
-            );
+            int mouseX, mouseY;
+            GetMousePoint(&mouseX, &mouseY);
+
+            // RETRYボタン
+            if (mouseX >= 700 && mouseX <= 950 &&
+                mouseY >= 900 && mouseY <= 980)
+            {
+                // コースを初期状態に戻す
+                courseManager.Initialize();
+
+                // ゲーム全体をリセットして再開
+                ResetGame(
+                    gameManager,
+                    playerController,
+                    courseManager,
+                    nextObstacleZ,
+                    previousTime
+                );
+
+                clickConsumed = true;
+            }
+
+            // TITLEボタン
+            else if (mouseX >= 970 && mouseX <= 1220 &&
+                mouseY >= 900 && mouseY <= 980)
+            {
+                // コースを初期状態に戻す
+                courseManager.Initialize();
+
+                // ゲームデータをリセット
+                gameManager.ResetRun(courseManager);
+
+                // プレイヤーコントローラーもリセット
+                playerController.Reset();
+
+                // 障害物の生成位置をリセット
+                nextObstacleZ = 50.0f;
+
+                // 時間をリセット
+                previousTime = GetNowCount();
+
+                // タイトル画面に戻す
+                gameManager.SetGameState(GameState::Title);
+
+                //クリック入力
+                clickConsumed = true;
+            }
         }
+
+      
         
 
         //能力選択画面
@@ -431,7 +479,16 @@ int WINAPI WinMain(
                 }
             }
         }
-     
+        
+        // GameOverからResultへ遷移
+        if (gameManager.GetGameState() == GameState::GameOver)
+        {
+            // 保存された結果データをリザルト画面に渡す
+            resultScene.Initialize(gameManager.GetResultData());
+
+            // ゲームステートを変更
+            gameManager.SetGameState(GameState::Result);
+        }
        
         // 画面を消去する
         ClearDrawScreen();
@@ -482,8 +539,16 @@ int WINAPI WinMain(
                 GetColor(255, 255, 255)
             );
         }
+
+        else if (gameManager.GetGameState() == GameState::Result)
+        {
+            // リザルト画面描画
+            resultScene.Draw();
+        }
+
         else
         {
+            //ゲーム画面の描画処理
             //---------------------------------------
 
 
@@ -503,8 +568,41 @@ int WINAPI WinMain(
 
             //---------------------------------------
 
-               //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
+
+            //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
             gameManager.Draw();
+
+            // Playing中の射撃処理
+            if (gameManager.GetGameState() == GameState::Playing)
+            {
+                // START・RETRYで使用されていないクリックだけ射撃に使う
+                if (leftClickDown && !clickConsumed)
+                {
+                    gameManager.TryShot(courseManager);
+                }
+
+                // クールタイム表示
+                float cooldown = gameManager.GetShotCooldown();
+
+                if (cooldown <= 0.0f)
+                {
+                    DrawString(
+                        20, 95,
+                        "SHOT: READY",
+                        GetColor(0, 255, 0)
+                    );
+                }
+                else
+                {
+                    DrawFormatString(
+                        20, 95,
+                        GetColor(255, 180, 0),
+                        "SHOT: %.1f SEC",
+                        cooldown
+                    );
+                }
+            }
+
 
             // CourseManagerから制御点を取得
             const std::vector<CoursePoint>& points =
@@ -740,48 +838,12 @@ int WINAPI WinMain(
                 );
             }
 
-            // 衝突したらゲームオーバーを表示
-            if (gameManager.GetGameState() == GameState::GameOver)
-            {
-                DrawString(
-                    600, 400,
-                    "GAME OVER",
-                    GetColor(255, 0, 0)
-                );
-            }
 
             bulletManager.DrawAll();
         }
 
         // 描画結果を画面に反映
         ScreenFlip();
-
-        // ゲームオーバーならキー入力を待つ
-        if (gameManager.GetGameState() == GameState::GameOver)
-        {
-            int input = WaitKey();
-
-            // Escapeならゲームを終了
-            if (input == KEY_INPUT_ESCAPE)
-            {
-                break;
-            }
-
-            // それ以外のキーなら再スタート
-
-            // コースを初期状態に戻す
-            courseManager.Initialize();
-
-            ResetGame(
-                gameManager,
-                playerController,
-                courseManager,
-                nextObstacleZ,
-                previousTime
-            );
-
-            continue;
-        }
 
     }
     
