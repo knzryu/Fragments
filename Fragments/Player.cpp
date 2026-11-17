@@ -8,8 +8,8 @@ void Player::Initialize()
     //‰Šú‰»ˆ—
     x = 0.0f;
     z = 0.0f;
-    forwardSpeed = 10.0f;
-    sideSpeed = 5.0f;
+    forwardSpeed = INITIAL_FORWARD_SPEED;
+    sideSpeed = INITIAL_SIDE_SPEED;
 
     courseZ = 0.0f;
     laneOffset = 0.0f;

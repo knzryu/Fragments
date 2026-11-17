@@ -21,11 +21,13 @@ void ResetGame(
     PlayerController& playerController,
     const CourseManager& courseManager,
     float& nextObstacleZ,
-    bool& gameOver,
     int& previousTime)
 {
     //ゲーム全体を初期状態に戻す
     gameManager.ResetRun(courseManager);
+
+    //ゲーム状態をPlayingに戻す
+    gameManager.SetGameState(GameState::Playing);
 
     // ダッシュの状態を初期化
     playerController.Reset();
@@ -33,8 +35,6 @@ void ResetGame(
     // 次の障害物の生成位置を初期化
     nextObstacleZ = 50.0f;
 
-    // ゲームオーバーを解除
-    gameOver = false;
 
     // 前回時刻を更新して、時間差をリセット
     previousTime = GetNowCount();
@@ -201,7 +201,7 @@ int WINAPI WinMain(
     
    
     //能力選択の状態
-    bool isSelectingAbility = false;
+    
     int abilityChoice = -1;
 
 
@@ -211,18 +211,15 @@ int WINAPI WinMain(
     float obstacleSpacing = 25.0f;
     float nextObstacleZ = 50.0f;
 
-	// ゲームオーバー状態を管理する変数
-    bool gameOver = false;
 
-	//  左クリックの押下状態を記録する変数
-    bool wasLeftMousePressed = false;
+
+	
 
     ResetGame(
         gameManager,
         playerController,
         courseManager,
         nextObstacleZ,
-        gameOver,
         previousTime
     );
 
@@ -244,80 +241,72 @@ int WINAPI WinMain(
             deltaTime = 0.05f;
         }
 
-        
-        gameManager.Update(deltaTime, courseManager);
-
-        playerController.Update(player, deltaTime);
-
-        // プレイヤーの進行位置に合わせてコースを追加生成
-        courseManager.UpdateCourse(player.GetCourseZ());
-
-		// プレイヤーの進行位置に合わせて古い制御点を削除 
-        courseManager.RemoveOldPoints(player.GetCourseZ());
-
-        // 横移動を反映してワールド座標を更新
-        //これがないと、横移動したのにxとzが前の位置のままになってしまう。
-        player.UpdateCoursePosition(courseManager);
-
-        //毎フレーム、アニメーションの時間を進める
-        player.UpdateAnimation(deltaTime);
-
-        // プレイヤーの後方にある障害物を削除する
-        obstacleManager.RemovePassedObstacles(
-            player.GetCourseZ()
-        );
-
-        // 次の障害物まで20以内になったら生成する
-        if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
+        if (gameManager.GetGameState() == GameState::Playing)
         {
-            // スプラインから生成位置を取得
-            obstacleManager.SpawnObstacle(
-                nextObstacleZ,
-                courseManager
+            gameManager.Update(deltaTime, courseManager);
+
+            playerController.Update(player, deltaTime);
+
+            // プレイヤーの進行位置に合わせてコースを追加生成
+            courseManager.UpdateCourse(player.GetCourseZ());
+
+            // プレイヤーの進行位置に合わせて古い制御点を削除 
+            courseManager.RemoveOldPoints(player.GetCourseZ());
+
+            // 横移動を反映してワールド座標を更新
+            //これがないと、横移動したのにxとzが前の位置のままになってしまう。
+            player.UpdateCoursePosition(courseManager);
+
+            //毎フレーム、アニメーションの時間を進める
+            player.UpdateAnimation(deltaTime);
+
+            // プレイヤーの後方にある障害物を削除する
+            obstacleManager.RemovePassedObstacles(
+                player.GetCourseZ()
             );
 
-            // 次の生成位置を更新
-            nextObstacleZ += obstacleSpacing;
+            // 次の障害物まで20以内になったら生成する
+            if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
+            {
+                // スプラインから生成位置を取得
+                obstacleManager.SpawnObstacle(
+                    nextObstacleZ,
+                    courseManager
+                );
+
+                // 次の生成位置を更新
+                nextObstacleZ += obstacleSpacing;
+            }
+
+            // カメラを設定
+            camera.Update(player, courseManager);
         }
-       
-        // カメラを設定
-        camera.Update(player, courseManager);
+        
 
 
         // マウスのボタン状態を取得
         int mouseInput = GetMouseInput();
 
-        // 左クリックで弾を発射
-        if (mouseInput & MOUSE_INPUT_LEFT)
-        {
-            // 左クリックした瞬間だけ発射
-            if (!wasLeftMousePressed)
-            {
-                bulletManager.SpawnBullet(
-                    player.GetCourseZ() + 1.0f,
-                    player.GetLaneOffset(),
-                    1.0f,
-                    courseManager
-                );
-            }
-
-			// 左クリックが押されている状態を記録
-            wasLeftMousePressed = true;
-        }
-        else
-        {
-            // 左クリックを離したら、次の発射を許可
-            wasLeftMousePressed = false;
-        }
-
-        
         //左クリックを押した瞬間だけ true
         bool leftClickDown = (
             mouseInput & MOUSE_INPUT_LEFT) != 0 &&
             (previousMouseInput & MOUSE_INPUT_LEFT) == 0;
 
+
+        // Playing中,左クリックした瞬間だけ弾を発射
+        if (gameManager.GetGameState() == GameState::Playing && leftClickDown)
+        {
+            bulletManager.SpawnBullet(
+                player.GetCourseZ() + 1.0f,
+                player.GetLaneOffset(),
+                1.0f,
+                courseManager
+            );
+        }
+        
+
         //能力選択画面
-        if (isSelectingAbility && leftClickDown)
+        if (gameManager.GetGameState() == GameState::AbilitySelect && leftClickDown)
         {
             int mouseX, mouseY;
             GetMousePoint(&mouseX, &mouseY);
@@ -357,59 +346,61 @@ int WINAPI WinMain(
                 }
 
                 abilityChoice = -1;
-                isSelectingAbility = false;
+                gameManager.SetGameState(GameState::Playing);
             }
         }
 
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
         previousMouseInput = mouseInput;
 
-        
-
-        // GameManagerに弾の更新と戦闘処理を依頼
-        bool isLevelUp = gameManager.UpdateBulletsAndCombat(
-            deltaTime,
-            courseManager
-        );
-        //レベルアップしたら能力選択画面へ
-        if (isLevelUp)
+        if (gameManager.GetGameState() == GameState::Playing)
         {
-            isSelectingAbility = true;
-        }
-
-
-
-        // プレイヤーの当たり判定範囲
-        float playerMinX = player.GetX() - 0.5f;
-        float playerMaxX = player.GetX() + 0.5f;
-        float playerMinY = 0.0f;
-        float playerMaxY = 2.0f;
-        float playerMinZ = player.GetZ() - 0.5f;
-        float playerMaxZ = player.GetZ() + 0.5f;
-
-        // すべての障害物をチェック
-		for (int i = 0; i < obstacleManager.GetCount(); i++)
-        {
-			//i番目の障害物を取得
-			Obstacle& obstacle = obstacleManager.GetObstacle(i);
-
-            bool isColliding = IsCollidingAABB(
-                playerMinX, playerMaxX,
-                playerMinY, playerMaxY,
-                playerMinZ, playerMaxZ,
-                obstacle.minX, obstacle.maxX,
-                obstacle.minY, obstacle.maxY,
-                obstacle.minZ, obstacle.maxZ
+            // GameManagerに弾の更新と戦闘処理を依頼
+            bool isLevelUp = gameManager.UpdateBulletsAndCombat(
+                deltaTime,
+                courseManager
             );
 
-            if (isColliding)
+            //レベルアップしたら能力選択画面へ
+            if (isLevelUp)
             {
-                gameOver = true;
-                break;
+                gameManager.SetGameState(GameState::AbilitySelect);
             }
         }
 
-       
+        //障害物との衝突判定
+        if (gameManager.GetGameState() == GameState::Playing)
+        {
+            // プレイヤーの当たり判定範囲
+            float playerMinX = player.GetX() - 0.5f;
+            float playerMaxX = player.GetX() + 0.5f;
+            float playerMinY = 0.0f;
+            float playerMaxY = 2.0f;
+            float playerMinZ = player.GetZ() - 0.5f;
+            float playerMaxZ = player.GetZ() + 0.5f;
+
+            // すべての障害物をチェック
+            for (int i = 0; i < obstacleManager.GetCount(); i++)
+            {
+                //i番目の障害物を取得
+                Obstacle& obstacle = obstacleManager.GetObstacle(i);
+
+                bool isColliding = IsCollidingAABB(
+                    playerMinX, playerMaxX,
+                    playerMinY, playerMaxY,
+                    playerMinZ, playerMaxZ,
+                    obstacle.minX, obstacle.maxX,
+                    obstacle.minY, obstacle.maxY,
+                    obstacle.minZ, obstacle.maxZ
+                );
+
+                if (isColliding)
+                {
+                    gameManager.SetGameState(GameState::GameOver);
+                    break;
+                }
+            }
+        }
      
        
         // 画面を消去する
@@ -624,7 +615,7 @@ int WINAPI WinMain(
             progress.GetNextLevelExp()
         );
 
-        if (isSelectingAbility)
+        if (gameManager.GetGameState() == GameState::AbilitySelect)
         {
             // 暗い背景
             DrawBox(
@@ -672,7 +663,7 @@ int WINAPI WinMain(
         }
 
         // 衝突したらゲームオーバーを表示
-        if (gameOver)
+        if (gameManager.GetGameState() == GameState::GameOver)
         {
             DrawString(
                 600, 400,
@@ -687,7 +678,7 @@ int WINAPI WinMain(
         ScreenFlip();
 
         // ゲームオーバーならキー入力を待つ
-        if (gameOver)
+        if (gameManager.GetGameState() == GameState::GameOver)
         {
             int input = WaitKey();
 
@@ -707,7 +698,6 @@ int WINAPI WinMain(
                 playerController,
                 courseManager,
                 nextObstacleZ,
-                gameOver,
                 previousTime
             );
 
