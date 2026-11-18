@@ -55,7 +55,7 @@ int WINAPI WinMain(
 {
     //window表示
     ChangeWindowMode(TRUE);
-    SetGraphMode(1920, 1080, 32);
+    SetGraphMode(1280, 960, 32);
 
     //Dxlib初期化
     if (DxLib_Init() == -1)
@@ -761,6 +761,10 @@ int WINAPI WinMain(
                     roadColor,
                     TRUE
                 );
+
+                //道路の左右にネオンラインを描画
+                //DrawLine3D(leftNear, leftFar, GetColor(0, 255, 255));
+                //DrawLine3D(rightNearPos, rightFarPos, GetColor(0, 255, 255));
             }
 
             //-----------------------------------------

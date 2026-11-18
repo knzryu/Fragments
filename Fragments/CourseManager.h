@@ -8,11 +8,34 @@ class CourseManager
 {
 private:
 
+    //カーブ生成の設定
+    enum class CurveType
+    {
+        Straight, //直線
+        Left,
+        Right
+    };
+
+    //現在の区間の種類
+    CurveType currentCurveType = CurveType::Straight;
+
     // コースの制御点を複数保存する配列
     std::vector<CoursePoint> controlPoints;
 
     // 乱数生成器
     std::mt19937 randomEngine;
+
+    //現在のカーブの傾き
+    float currentSlope = 0.0f;
+
+    //目標とするカーブの傾き
+    float targetSlope = 0.0f;
+
+    //現在の区間に残っている制御点数
+    int remainingPoints = 0;
+
+    //次のカーブ区間を決定する
+    void SelectNextCurve();
 
 public:
 

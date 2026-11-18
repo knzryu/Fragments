@@ -7,6 +7,8 @@
 class CombatManager
 {
 private:
+
+
     //発射クールタイム
     const float shotCooldown = 5.0f;
 
@@ -38,3 +40,4 @@ public:
     //残り時間取得
     float GetShotTimer() const;
 };
+

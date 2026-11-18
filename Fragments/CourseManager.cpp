@@ -12,6 +12,14 @@ void CourseManager::Initialize()
 	//clear() は要素を削除するが、通常はvectorの確保済み容量までは解放しない。 
 	controlPoints.clear();
 
+	//現在実際に使っている傾き
+	currentSlope = 0.0f;
+	//最終的に目指したい傾き
+	targetSlope = 0.0f;
+
+	//最初の区間は直線にする
+	remainingPoints = 4;
+
 	// 乱数を初期化 
 	//random_device は乱数の種（シード）を取得するために使用するもの。
 	//なぜ乱数の種が必要なの？ 
@@ -38,13 +46,21 @@ void CourseManager::Initialize()
 // ランダムな制御点を追加
 void CourseManager::GeneratePoint()
 {
+	//区間が終了したら次のカーブを決める
+	if (remainingPoints <= 0)
+	{
+		SelectNextCurve();
+	}
+
+	//現在の傾きを目標の傾きに近づける
+	currentSlope += (targetSlope - currentSlope) * 0.35f;
+
 	// 前の制御点のX座標を取得
 	float previousX = controlPoints.back().x;
 
 	// 前の位置からの変化量
-	std::uniform_real_distribution<float> dist(-2.6f, 2.5f);
-
-	float nextX = previousX + dist(randomEngine);
+	
+	float nextX = previousX + currentSlope * 30.0f;
 
 	// コースの最大幅を制限
 	nextX = std::max(-8.0f, std::min(8.0f, nextX));
@@ -53,6 +69,9 @@ void CourseManager::GeneratePoint()
 	float nextZ = controlPoints.back().z + 30.0f;
 
 	controlPoints.push_back({ nextX, nextZ });
+
+	//残りの制御点を数を減らす
+	remainingPoints--;
 }
 
 // プレイヤーの前方にコースが不足していたら追加生成
@@ -152,4 +171,52 @@ CoursePoint CourseManager::GetRight(float z) const
 		direction.z,
 		-direction.x
 	};
+}
+
+//次のカーブ区間を決定する
+void CourseManager::SelectNextCurve()
+{
+	// 区間の種類をランダムに決める
+	std::uniform_int_distribution<int> curveDist(0, 4);
+	int curve = curveDist(randomEngine);
+
+	// カーブの傾きを決める
+	std::uniform_real_distribution<float> slopeDist(0.03f, 0.18f);
+
+	switch (curve)
+	{
+	case 0:
+		// 直線
+		currentCurveType = CurveType::Straight;
+		targetSlope = 0.0f;
+		break;
+
+	case 1:
+	case 2:
+		// 左カーブ
+		currentCurveType = CurveType::Left;
+		targetSlope = -slopeDist(randomEngine);
+		break;
+
+	case 3:
+	case 4:
+		// 右カーブ
+		currentCurveType = CurveType::Right;
+		targetSlope = slopeDist(randomEngine);
+		break;
+	}
+
+	// 区間の種類によって長さを変更する
+	if (currentCurveType == CurveType::Straight)
+	{
+		// 直線は4～7点
+		std::uniform_int_distribution<int> lengthDist(3, 5);
+		remainingPoints = lengthDist(randomEngine);
+	}
+	else
+	{
+		// カーブは10～18点
+		std::uniform_int_distribution<int> lengthDist(18, 30);
+		remainingPoints = lengthDist(randomEngine);
+	}
 }

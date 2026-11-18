@@ -24,13 +24,7 @@ void EnemyManager::SpawnEnemy(
     enemy.laneOffset = laneOffset;
     enemy.y = y;
 
-    DrawFormatString(
-        20, 180,
-        GetColor(255, 255, 0),
-        "Spawn input: %.2f / stored: %.2f",
-        courseZ,
-        enemy.courseZ
-    );
+   
 
     // ワールド座標を計算
     enemy.UpdatePosition(courseManager);
@@ -38,11 +32,7 @@ void EnemyManager::SpawnEnemy(
     // 管理配列に追加
     enemies.push_back(enemy);
 
-    printf(
-        "SpawnEnemy: courseZ=%.2f, laneOffset=%.2f\n",
-        enemy.courseZ,
-        enemy.laneOffset
-    );
+   
 }
 
 
