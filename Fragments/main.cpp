@@ -55,7 +55,7 @@ int WINAPI WinMain(
 {
     //window表示
     ChangeWindowMode(TRUE);
-    SetGraphMode(1280, 960, 32);
+    SetGraphMode(1920, 1080, 32);
 
     //Dxlib初期化
     if (DxLib_Init() == -1)
@@ -207,6 +207,20 @@ int WINAPI WinMain(
 
     // EnemyManagerを取得
     EnemyManager& enemyManager = gameManager.GetEnemyManager();
+    
+    // 敵モデルを読み込む
+    if (!enemyManager.LoadModel())
+    {
+        MessageBox(
+            NULL,
+            "Enemy Model Load Failed",
+            "Error",
+            MB_OK
+        );
+
+        DxLib_End();
+        return -1;
+    }
 
 	// BulletManagerを取得 
     BulletManager& bulletManager = gameManager.GetBulletManager();
@@ -264,13 +278,15 @@ int WINAPI WinMain(
             //これがないと、横移動したのにxとzが前の位置のままになってしまう。
             player.UpdateCoursePosition(courseManager);
 
+            // 敵の自動生成を更新
+            enemyManager.Update(player.GetCourseZ(), courseManager);
+
             //毎フレーム、アニメーションの時間を進める
             player.UpdateAnimation(deltaTime);
 
             // プレイヤーの後方にある障害物を削除する
-            obstacleManager.RemovePassedObstacles(
-                player.GetCourseZ()
-            );
+            obstacleManager.RemovePassedObstacles(player.GetCourseZ());
+
 
             // 次の障害物まで20以内になったら生成する
             if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
@@ -552,8 +568,8 @@ int WINAPI WinMain(
             //---------------------------------------
 
 
-        // SkyBoxの描画
-        // SkyBoxをカメラ位置に追従させる
+            // SkyBoxの描画
+            // SkyBoxをカメラ位置に追従させる
             MV1SetPosition(skyboxHandle, camera.GetPosition());
 
             // SkyBoxはライティングの影響を受けない
@@ -608,6 +624,20 @@ int WINAPI WinMain(
             const std::vector<CoursePoint>& points =
                 courseManager.GetControlPoints();
 
+            // 制御点のX座標を確認するデバッグ表示
+            for (int i = 0; i < (int)points.size() && i < 12; i++)
+            {
+                DrawFormatString(
+                    20,
+                    200 + i * 20,
+                    GetColor(255, 255, 0),
+                    "Point %d : X = %.3f Z = %.1f",
+                    i,
+                    points[i].x,
+                    points[i].z
+                );
+            }
+
             // すべてのスプライン区間を描画
             for (int i = 0; i < (int)points.size() - 3; i++)
             {
@@ -640,9 +670,9 @@ int WINAPI WinMain(
                 }
             }
 
-
+            //デバック
             // 各敵の座標とHPを確認
-            for (int i = 0; i < enemyManager.GetCount(); i++)
+            /*/for (int i = 0; i < enemyManager.GetCount(); i++)
             {
                 Enemy& enemy = enemyManager.GetEnemy(i);
 
@@ -656,10 +686,13 @@ int WINAPI WinMain(
                     enemy.x,
                     enemy.z
                 );
-            }
+            }/*/
 
             //障害物を配置
             obstacleManager.DrawAll();
+
+            //敵を描画
+            enemyManager.DrawAll();
 
             // コースの最後の制御点を確認
 

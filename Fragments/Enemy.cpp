@@ -7,7 +7,7 @@ void Enemy::Initialize(float startX, float startY, float startZ)
     x = startX;
     y = startY;
     z = startZ;
-    hp = 3;
+    hp = 1;
 }
 
 // コース情報から敵のワールド座標を更新する
@@ -25,16 +25,18 @@ void Enemy::UpdatePosition(const CourseManager& courseManager)
 }
 
 
-void Enemy::Draw()
+void Enemy::Draw(int modelHandle)
 {
-    DrawCube3D(
-        VGet(x - 0.5f, y, z - 0.5f),
-        VGet(x + 0.5f, y + 2.0f, z + 0.5f),
-        GetColor(255, 80, 80),
-        GetColor(255, 80, 80),
-        TRUE
-    );
+    // モデルサイズ（仮の調整値）
+    MV1SetScale(modelHandle, VGet(0.02f, 0.02f, 0.02f));
+
+    //敵のモデル座標
+    MV1SetPosition(modelHandle,VGet(x, y + 2.0f, z));
+
+    //モデルを描画
+    MV1DrawModel(modelHandle);
 }
+
 //TakeDamageの処理中身
 void Enemy::TakeDamage(int damage)
 {

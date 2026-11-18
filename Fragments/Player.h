@@ -77,7 +77,7 @@ private:
     //------------</初期ステータス/>-----------------
 
         //移動速度   constexprで初期値を定数にする
-    static constexpr float INITIAL_FORWARD_SPEED = 60.0f;
+    static constexpr float INITIAL_FORWARD_SPEED = 50.0f;
     //左右
     static constexpr float INITIAL_SIDE_SPEED = 5.0;
 

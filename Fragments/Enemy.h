@@ -7,7 +7,7 @@ class Enemy
 {
 private:
     //HPはEnemy自身が管理
-    int hp = 3;
+    int hp = 1;
 
 public:
     // ワールド座標
@@ -19,7 +19,7 @@ public:
     float courseZ = 20.0f;
     float laneOffset = 0.0f;
 
-    void Draw();
+    void Draw(int modelHandle);
 
     // 敵の初期化
     void Initialize(float startX, float startY, float startZ);

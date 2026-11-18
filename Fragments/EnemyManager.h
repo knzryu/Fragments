@@ -8,9 +8,26 @@
 class EnemyManager
 {
 private:
+    //敵モデルのハンドル
+    int modelHandle = -1;
+
+    //現在管理している敵の配列
     std::vector<Enemy> enemies;
 
+    //次の敵を出現させる位置
+    float nextSpawnZ = 80.0f;
+
+    //敵を生成する間隔
+    static constexpr float SPAWN_INTERVAL = 50.0f;
+
 public:
+
+    // 敵モデルの読み込み
+    bool LoadModel();
+
+    // 敵モデルの解放
+    void ReleaseModel();
+
     // 敵の初期生成
     void Initialize(const CourseManager& courseManager);
 
@@ -21,6 +38,9 @@ public:
         float y,
         const CourseManager& courseManager
     );
+
+    // 敵の自動生成を更新
+    void Update(float playerCourseZ, const CourseManager& courseManager);
 
     // 敵の描画
     void DrawAll();
