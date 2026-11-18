@@ -54,7 +54,7 @@ public:
 	void ResetRun(const CourseManager& courseManager);
 
 	//ゲームの更新
-	void Update(float deltaTime, const CourseManager& courseManager);
+	void Update(float deltaTime, const CourseManager& courseManager,bool canMoveForward);
 
 	// ゲーム状態を取得
 	GameState GetGameState() const;

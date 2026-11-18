@@ -28,7 +28,7 @@ void Enemy::UpdatePosition(const CourseManager& courseManager)
 void Enemy::Draw(int modelHandle)
 {
     // モデルサイズ（仮の調整値）
-    MV1SetScale(modelHandle, VGet(0.02f, 0.02f, 0.02f));
+    MV1SetScale(modelHandle, VGet(0.013f, 0.013f, 0.013f));
 
     //敵のモデル座標
     MV1SetPosition(modelHandle,VGet(x, y + 2.0f, z));

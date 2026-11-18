@@ -15,6 +15,7 @@
 #include "PlayerController.h"
 #include "Camera.h"
 #include "ResultScene.h"
+#include "BossManager.h"
 
 // ゲームの状態をリセットする関数
 void ResetGame(
@@ -207,6 +208,9 @@ int WINAPI WinMain(
 
     // EnemyManagerを取得
     EnemyManager& enemyManager = gameManager.GetEnemyManager();
+
+    // BossManagerを生成
+    BossManager bossManager;
     
     // 敵モデルを読み込む
     if (!enemyManager.LoadModel())
@@ -214,6 +218,20 @@ int WINAPI WinMain(
         MessageBox(
             NULL,
             "Enemy Model Load Failed",
+            "Error",
+            MB_OK
+        );
+
+        DxLib_End();
+        return -1;
+    }
+
+    // ボスモデルを読み込む
+    if (!bossManager.LoadModel())
+    {
+        MessageBox(
+            NULL,
+            "Boss Model Load Failed",
             "Error",
             MB_OK
         );
@@ -264,8 +282,24 @@ int WINAPI WinMain(
 
         if (gameManager.GetGameState() == GameState::Playing)
         {
-            gameManager.Update(deltaTime, courseManager);
+            // ボスの出現・アニメーションを更新
+            bossManager.Update(
+                player.GetCourseZ(),
+                deltaTime,
+                courseManager
+            );
 
+            // ボスが生存していなければ前進可能
+            bool canMoveForward = !bossManager.IsBossActive();
+
+            // ゲーム全体を更新
+            gameManager.Update(
+                deltaTime,
+                courseManager,
+                canMoveForward
+            );
+
+            // プレイヤーの入力・左右移動
             playerController.Update(player, deltaTime);
 
             // プレイヤーの進行位置に合わせてコースを追加生成
@@ -624,7 +658,7 @@ int WINAPI WinMain(
             const std::vector<CoursePoint>& points =
                 courseManager.GetControlPoints();
 
-            // 制御点のX座標を確認するデバッグ表示
+            /*/ 制御点のX座標を確認するデバッグ表示
             for (int i = 0; i < (int)points.size() && i < 12; i++)
             {
                 DrawFormatString(
@@ -637,7 +671,7 @@ int WINAPI WinMain(
                     points[i].z
                 );
             }
-
+            /*/
             // すべてのスプライン区間を描画
             for (int i = 0; i < (int)points.size() - 3; i++)
             {
@@ -693,6 +727,9 @@ int WINAPI WinMain(
 
             //敵を描画
             enemyManager.DrawAll();
+
+            // ボスの描画
+            bossManager.Draw();
 
             // コースの最後の制御点を確認
 

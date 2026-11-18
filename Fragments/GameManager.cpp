@@ -24,7 +24,8 @@ void GameManager::Initialize(const CourseManager& courseManager)
 // ゲームの更新
 void GameManager::Update(
 	float deltaTime,
-	const CourseManager& courseManager)
+	const CourseManager& courseManager,
+	bool canMoveForward)
 {
 	// クールタイムを更新
 	combatManager.UpdateCooldown(deltaTime);
@@ -32,8 +33,12 @@ void GameManager::Update(
 	//生存時間を加算
 	survivalTime += deltaTime;
 
-	// コース上の進行位置を更新
-	player.MoveForward(deltaTime);
+
+	// ボス戦以外では前進
+	if (canMoveForward)
+	{
+		player.MoveForward(deltaTime);
+	}
 
 	// コース上の位置からワールド座標を計算
 	player.UpdateCoursePosition(courseManager);
