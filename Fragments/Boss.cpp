@@ -1,5 +1,6 @@
 #include "Boss.h"
 #include "DxLib.h"
+#include <cmath>
 
 // 大ボスのモデルと待機アニメーションを読み込む
 bool Boss::LoadModel()
@@ -112,7 +113,7 @@ void Boss::Update(float deltaTime)
     {
         while (currentTime >= totalTime)
         {
-            currentTime -= totalTime;
+            currentTime = std::fmod(currentTime, totalTime);
         }
     }
 

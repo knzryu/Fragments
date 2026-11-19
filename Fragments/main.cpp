@@ -56,7 +56,7 @@ int WINAPI WinMain(
 {
     //window表示
     ChangeWindowMode(TRUE);
-    SetGraphMode(1920, 1080, 32);
+    SetGraphMode(1280, 720, 32);
 
     //Dxlib初期化
     if (DxLib_Init() == -1)
@@ -358,10 +358,10 @@ int WINAPI WinMain(
             int mouseX, mouseY;
             GetMousePoint(&mouseX, &mouseY);
 
-            //STARTボタンの範囲
+            // STARTボタンの範囲
             bool isMouseOverButton =
-                mouseX >= 810 && mouseX <= 1110 &&
-                mouseY >= 700 && mouseY <= 800;
+                mouseX >= 490 && mouseX <= 790 &&
+                mouseY >= 500 && mouseY <= 600;
 
             //ボタン内で左クリックした瞬間
             if (isMouseOverButton && leftClickDown)
@@ -549,16 +549,16 @@ int WINAPI WinMain(
             
             // 背景画像
             DrawExtendGraph(
-                0, 0,1920, 1080,
+                0, 0,1280, 720,
                 titleBackgroundHandle,
                 TRUE
             );
 
             //STARTボタンの範囲
-            const int buttonLeft = 810;
-            const int buttonTop = 700;
-            const int buttonRight = 1110;
-            const int buttonBottom = 800;
+            const int buttonLeft = 490;
+            const int buttonTop = 500;
+            const int buttonRight = 790;
+            const int buttonBottom = 600;
 
    
             // マウス位置
