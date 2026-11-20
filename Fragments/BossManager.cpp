@@ -38,7 +38,7 @@ void BossManager::Update(
 		}
 	}
 
-	if (boss.IsActive() && !boss.IsDead())
+	if (boss.IsActive())
 	{
 		boss.Update(deltaTime);
 	}
@@ -82,7 +82,7 @@ bool BossManager::CheckSpawn(float playerCourseZ)
 // ’†ƒ{ƒX‚Ì•`‰æ
 void BossManager::Draw()
 {
-	if (boss.IsActive() && !boss.IsDead())
+	if (boss.IsActive())
 	{
 		boss.Draw();
 	}

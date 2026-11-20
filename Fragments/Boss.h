@@ -14,14 +14,21 @@ private:
 	float y = 0.0f;
 	float z = 0.0f;
 
-    // 中ボスのモデルハンドル
+    // モデルハンドル
     int modelHandle = -1;
 
-    // 待機アニメーションのモデルハンドル
-    int idleAnimModelHandle = -1;
+    // アニメーションのアタッチ番号
+    int animAttachIndex = -1;
 
-    // 待機アニメーションの接続番号
-    int idleAttachIndex = -1;
+    // アニメーションの総再生時間
+    float animTotalTime = 0.0f;
+
+    // 現在の再生時間
+    float animTime = 0.0f;
+
+
+    
+
 
 public:
 

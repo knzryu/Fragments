@@ -11,7 +11,7 @@ private:
 	Boss boss;
 
 	//中ボスの出現距離
-	float spawnDistance = 50.0f;
+	float spawnDistance = 10.0f;
 
 	//中ボスが出現したか
 	bool hasSpawned = false;
