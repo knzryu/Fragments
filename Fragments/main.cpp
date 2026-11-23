@@ -21,12 +21,16 @@
 void ResetGame(
     GameManager& gameManager,
     PlayerController& playerController,
+    BossManager& bossManager,
     const CourseManager& courseManager,
     float& nextObstacleZ,
     int& previousTime)
 {
     //ゲーム全体を初期状態に戻す
     gameManager.ResetRun(courseManager);
+
+    // ボスの状態を初期化
+    bossManager.Reset();
 
     //ゲーム状態をPlayingに戻す
     gameManager.SetGameState(GameState::Playing);
@@ -282,6 +286,11 @@ int WINAPI WinMain(
 
         if (gameManager.GetGameState() == GameState::Playing)
         {
+
+            // 更新前のボス進行状態を保存
+            BossPhase previousPhase = bossManager.GetPhase();
+
+
             // ボスの出現・アニメーションを更新
             bossManager.Update(
                 player.GetCourseZ(),
@@ -289,15 +298,22 @@ int WINAPI WinMain(
                 courseManager
             );
 
-            // ボスが生存していなければ前進可能
-            bool canMoveForward = !bossManager.IsBossActive();
 
-            // ゲーム全体を更新
-            gameManager.Update(
-                deltaTime,
-                courseManager,
-                canMoveForward
-            );
+            // 更新後のボス進行状態を取得
+            BossPhase currentPhase = bossManager.GetPhase();
+
+
+            // NormalからWarningに切り替わった瞬間
+            if (previousPhase == BossPhase::Normal &&
+                currentPhase == BossPhase::Warning)
+            {
+                // 敵をすべて削除
+                enemyManager.Clear();
+
+                // 障害物をすべて削除
+                obstacleManager.Reset();
+            }
+
 
             // プレイヤーの入力・左右移動
             playerController.Update(player, deltaTime);
@@ -308,12 +324,26 @@ int WINAPI WinMain(
             // プレイヤーの進行位置に合わせて古い制御点を削除 
             courseManager.RemoveOldPoints(player.GetCourseZ());
 
-            // 横移動を反映してワールド座標を更新
-            //これがないと、横移動したのにxとzが前の位置のままになってしまう。
-            player.UpdateCoursePosition(courseManager);
+            // GameManagerにゲーム全体の更新を依頼
+            bool canMoveForward =
+                bossManager.GetPhase() != BossPhase::Battle;
 
-            // 敵の自動生成を更新
-            enemyManager.Update(player.GetCourseZ(), courseManager);
+            gameManager.Update(
+                deltaTime,
+                courseManager,
+                canMoveForward
+            );
+
+            
+            // 通常ラン中だけ敵を自動生成する
+            if (bossManager.GetPhase() == BossPhase::Normal)
+            {
+                enemyManager.Update(
+                    player.GetCourseZ(),
+                    courseManager
+                );
+            }
+
 
             //毎フレーム、アニメーションの時間を進める
             player.UpdateAnimation(deltaTime);
@@ -322,17 +352,19 @@ int WINAPI WinMain(
             obstacleManager.RemovePassedObstacles(player.GetCourseZ());
 
 
-            // 次の障害物まで20以内になったら生成する
-            if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
+            // 通常ラン中だけ障害物を生成する
+            if (bossManager.GetPhase() == BossPhase::Normal)
             {
-                // スプラインから生成位置を取得
-                obstacleManager.SpawnObstacle(
-                    nextObstacleZ,
-                    courseManager
-                );
+                // 次の障害物まで20以内になったら生成する
+                if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
+                {
+                    obstacleManager.SpawnObstacle(
+                        nextObstacleZ,
+                        courseManager
+                    );
 
-                // 次の生成位置を更新
-                nextObstacleZ += obstacleSpacing;
+                    nextObstacleZ += obstacleSpacing;
+                }
             }
 
             // カメラを設定
@@ -369,6 +401,7 @@ int WINAPI WinMain(
                 ResetGame(
                     gameManager,
                     playerController,
+                    bossManager,
                     courseManager,
                     nextObstacleZ,
                     previousTime
@@ -395,6 +428,7 @@ int WINAPI WinMain(
                 ResetGame(
                     gameManager,
                     playerController,
+                    bossManager,
                     courseManager,
                     nextObstacleZ,
                     previousTime
@@ -412,6 +446,9 @@ int WINAPI WinMain(
 
                 // ゲームデータをリセット
                 gameManager.ResetRun(courseManager);
+
+                // ボスの状態を初期化
+                bossManager.Reset();
 
                 // プレイヤーコントローラーもリセット
                 playerController.Reset();
@@ -486,7 +523,8 @@ int WINAPI WinMain(
             // GameManagerに弾の更新と戦闘処理を依頼
             bool isLevelUp = gameManager.UpdateBulletsAndCombat(
                 deltaTime,
-                courseManager
+                courseManager,
+                bossManager
             );
 
             //レベルアップしたら能力選択画面へ
@@ -731,6 +769,17 @@ int WINAPI WinMain(
             // ボスの描画
             bossManager.Draw();
 
+            // ボス戦中のみHPを表示
+            if (bossManager.IsBossActive())
+            {
+                DrawFormatString(
+                    20, 200,
+                    GetColor(255, 0, 0),
+                    "BOSS HP: %d",
+                    bossManager.GetBossHP()
+                );
+            }
+
             // コースの最後の制御点を確認
 
 
@@ -845,6 +894,13 @@ int WINAPI WinMain(
                 GetColor(255, 255, 255),
                 "Defeated: %d",
                 progress.GetDefeatedEnemyCount()
+            );
+
+            DrawFormatString(
+                220, 20,
+                GetColor(255, 255, 255),
+                "DISTANCE: %.0f m",
+                player.GetCourseZ()
             );
 
             //経験値表示

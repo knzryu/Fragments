@@ -7,15 +7,23 @@ void BulletManager::Initialize()
 }
 
 // 弾の生成
-void BulletManager::SpawnBullet(float courseZ, float laneOffset, float y,const CourseManager& courseManager)
+void BulletManager::SpawnBullet(
+    float courseZ,
+    float laneOffset,
+    float y,
+    float bulletSize,
+    const CourseManager& courseManager)
 {
     Bullet bullet;
 
-	bullet.courseZ = courseZ;
-	bullet.laneOffset = laneOffset;
-	bullet.y = y;
+    bullet.courseZ = courseZ;
+    bullet.laneOffset = laneOffset;
+    bullet.y = y;
 
-	bullet.UpdatePosition(courseManager);
+    // プレイヤーの現在の弾サイズを設定
+    bullet.size = bulletSize;
+
+    bullet.UpdatePosition(courseManager);
 
     bullets.push_back(bullet);
 }

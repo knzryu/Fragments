@@ -11,6 +11,11 @@ void Player::Initialize()
     forwardSpeed = INITIAL_FORWARD_SPEED;
     sideSpeed = INITIAL_SIDE_SPEED;
 
+    // 能力値を初期化
+    attackPower = INITIAL_ATTACK_POWER;
+    bulletSpeed = INITIAL_BULLET_SPEED;
+    bulletSize = INITIAL_BULLET_SIZE;
+
     courseZ = 0.0f;
     laneOffset = 0.0f;
 
@@ -61,6 +66,11 @@ void Player::Reset()
     // 移動速度を初期化
     forwardSpeed = INITIAL_FORWARD_SPEED;
     sideSpeed = INITIAL_SIDE_SPEED;
+    bulletSize = INITIAL_BULLET_SIZE;
+
+    // 能力値を初期化
+    attackPower = INITIAL_ATTACK_POWER;
+    bulletSpeed = INITIAL_BULLET_SPEED;
 
     // アニメーションを最初から再生
     animTime = 0.0f;
@@ -91,7 +101,7 @@ void Player::Draw()
         );
 
         // モデルを10分の1に縮小
-        MV1SetScale(modelHandle, VGet(0.015f, 0.015f, 0.015f));
+        MV1SetScale(modelHandle, VGet(0.013f, 0.013f, 0.013f));
 
         // プレイヤーの座標にモデルを配置
         MV1SetPosition(modelHandle, VGet(x, 0.0f, z));
@@ -215,6 +225,24 @@ float Player::GetBulletSpeed() const
 void Player::SetBulletSpeed(float newSpeed)
 {
     bulletSpeed = newSpeed;
+}
+
+// 弾サイズの取得
+float Player::GetBulletSize() const
+{
+    return bulletSize;
+}
+
+// 弾サイズの設定
+void Player::SetBulletSize(float newSize)
+{
+    // 不正なサイズを防ぐ
+    if (newSize <= 0.0f)
+    {
+        return;
+    }
+
+    bulletSize = newSize;
 }
 
 void Player::Finalize()

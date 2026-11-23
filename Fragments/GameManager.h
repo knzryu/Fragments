@@ -102,8 +102,12 @@ public:
 	// 弾の更新と戦闘処理を実行
 	bool UpdateBulletsAndCombat(
 		float deltaTime,
-		const CourseManager& courseManager
+		const CourseManager& courseManager,
+		BossManager& bossManager
 	);
+
+	// 射撃クールタイムを短縮
+	void ReduceShotCooldown();
 
 	//リザルトデータを取得
 	const ResultData& GetResultData() const;

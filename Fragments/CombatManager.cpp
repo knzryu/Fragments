@@ -6,6 +6,7 @@
 // ƒN[ƒ‹ƒ^ƒCƒ€‰Šú‰»
 void CombatManager::Initialize()
 {
+    shotCooldown = INITIAL_SHOT_COOLDOWN;
     shotTimer = 0.0f;
 }
 
@@ -41,11 +42,23 @@ float CombatManager::GetShotTimer() const
     return shotTimer;
 }
 
-// “G‚Æ’e‚Ìí“¬ˆ—
+// ƒN[ƒ‹ƒ^ƒCƒ€‚ğ’Zk
+void CombatManager::ReduceShotCooldown()
+{
+    shotCooldown -= COOLDOWN_REDUCTION_AMOUNT;
+
+    if (shotCooldown < MIN_SHOT_COOLDOWN)
+    {
+        shotCooldown = MIN_SHOT_COOLDOWN;
+    }
+}
+
 bool CombatManager::Update(
     EnemyManager& enemyManager,
     BulletManager& bulletManager,
-    PlayerProgress& progress)
+    PlayerProgress& progress,
+    BossManager& bossManager,
+    Player& player)
 {
     bool isLevelUp = false;
 
@@ -80,12 +93,14 @@ bool CombatManager::Update(
             }
 
             // ’e‚Ì“–‚½‚è”»’è”ÍˆÍ
-            float bulletMinX = bullet.x - 0.15f;
-            float bulletMaxX = bullet.x + 0.15f;
-            float bulletMinY = bullet.y - 0.15f;
-            float bulletMaxY = bullet.y + 0.15f;
-            float bulletMinZ = bullet.z - 0.15f;
-            float bulletMaxZ = bullet.z + 0.15f;
+            float bulletMinX = bullet.x - bullet.size;
+            float bulletMaxX = bullet.x + bullet.size;
+
+            float bulletMinY = bullet.y - bullet.size;
+            float bulletMaxY = bullet.y + bullet.size;
+
+            float bulletMinZ = bullet.z - bullet.size;
+            float bulletMaxZ = bullet.z + bullet.size;
 
             // “G‚Æ’e‚ÌÕ“Ë”»’è
             bool isHit = IsCollidingAABB(
@@ -103,7 +118,7 @@ bool CombatManager::Update(
                 int previousHP = enemy.GetHP();
 
                 // ƒ_ƒ[ƒW‚ğ—^‚¦‚é
-                enemy.TakeDamage(1);
+                enemy.TakeDamage(player.GetAttackPower());
 
                 // “G‚ğ“|‚µ‚½uŠÔ‚¾‚¯•ñV‚ğ—^‚¦‚é
                 if (previousHP > 0 && enemy.IsDead())
@@ -123,6 +138,7 @@ bool CombatManager::Update(
                     }
                 }
 
+
                 // –½’†‚µ‚½’e‚ğ–³Œø‰»
                 bullet.active = false;
 
@@ -131,6 +147,32 @@ bool CombatManager::Update(
                 {
                     break;
                 }
+            }
+        }
+    }
+
+
+    // ƒ{ƒX‚Æ‚Ì“–‚½‚è”»’è
+    if (bossManager.IsBossActive())
+    {
+        for (int i = bulletManager.GetCount() - 1; i >= 0; i--)
+        {
+            auto& bullet = bulletManager.GetBullet(i);
+
+            if (!bullet.active)
+            {
+                continue;
+            }
+
+            if (bossManager.ApplyBulletHit(
+                bullet.previousCourseZ,
+                bullet.courseZ,
+                bullet.laneOffset,
+                bullet.size,
+                player.GetAttackPower()))
+            {
+                // –½’†‚µ‚½’e‚¾‚¯–³Œø‰»
+                bullet.active = false;
             }
         }
     }

@@ -122,7 +122,8 @@ BulletManager& GameManager::GetBulletManager()
 // 戦闘処理を実行
 bool GameManager::UpdateBulletsAndCombat(
     float deltaTime,
-	const CourseManager& courseManager)
+	const CourseManager& courseManager,
+	BossManager& bossManager)
 {
 	// 1.　すべての弾を更新
 	bulletManager.UpdateAll(deltaTime, courseManager);
@@ -131,7 +132,9 @@ bool GameManager::UpdateBulletsAndCombat(
 	return combatManager.Update(
 		enemyManager,
 		bulletManager,
-		playerProgress
+		playerProgress,
+		bossManager,
+		player
 	);
 }
 
@@ -175,6 +178,7 @@ bool GameManager::TryShot(const CourseManager& courseManager)
 		player.GetCourseZ() + 1.0f,
 		player.GetLaneOffset(),
 		1.0f,
+		player.GetBulletSize(),
 		courseManager
 	);
 
@@ -188,4 +192,10 @@ bool GameManager::TryShot(const CourseManager& courseManager)
 float GameManager::GetShotCooldown() const
 {
 	return combatManager.GetShotTimer();
+}
+
+// 射撃クールタイムを短縮
+void GameManager::ReduceShotCooldown()
+{
+	combatManager.ReduceShotCooldown();
 }

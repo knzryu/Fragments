@@ -1,5 +1,6 @@
 #include "Boss.h"
 #include "DxLib.h"
+#include "CourseManager.h"
 #include <cmath>  
 
 // 大ボスモデルの読み込み
@@ -92,25 +93,109 @@ void Boss::ReleaseModel()
 }
 
 // 大ボスの更新
-void Boss::Update(float deltaTime)
+void Boss::Update(float deltaTime, const CourseManager& courseManager)
 {
-    if (!active ||
-        modelHandle == -1 ||
-        animAttachIndex == -1)
+    // ボスが出現していない場合は更新しない
+    if (!active || IsDead())
     {
         return;
     }
 
     // 再生時間を進める（30FPS想定）
+    actionTimer += deltaTime;
+
+    switch (action)
+    {
+    case BossAction::Idle:
+
+        if (actionTimer >= 1.5f)
+        {
+            // 次のレーンを決める
+            currentLane = (currentLane + 1) % 3;
+
+            // レーン番号から目標オフセットを決める
+            targetLaneOffset = (currentLane - 1) * 4.0f;
+
+            // 1秒の予兆時間で移動が完了する速度を計算
+            float moveDistance =
+                std::fabs(targetLaneOffset - laneOffset);
+
+            laneMoveSpeed = moveDistance / 1.0f;
+
+            action = BossAction::Warning;
+            actionTimer = 0.0f;
+        }
+        break;
+
+    case BossAction::Warning:
+
+        // 攻撃予兆中にレーン移動
+        UpdateLane(deltaTime);
+
+        if (actionTimer >= 1.0f)
+        {
+            action = BossAction::Attacking;
+            actionTimer = 0.0f;
+        }
+        break;
+
+    case BossAction::Attacking:
+
+        // 0.5秒攻撃状態を維持したら硬直へ
+        if (actionTimer >= 0.5f)
+        {
+            action = BossAction::Recovery;
+            actionTimer = 0.0f;
+        }
+        break;
+
+    case BossAction::Recovery:
+
+        // 1.2秒硬直したら待機へ
+        if (actionTimer >= 1.2f)
+        {
+            action = BossAction::Idle;
+            actionTimer = 0.0f;
+        }
+        break;
+
+    case BossAction::Dead:
+        return;
+    }
+
+
+    // コース中心を取得
+    CoursePoint center =
+        courseManager.GetPosition(bossCourseZ);
+
+    // コースの右方向を取得
+    CoursePoint right =
+        courseManager.GetRight(bossCourseZ);
+
+    // ワールド座標を更新
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
+
+
+    // --------------------------------
+    // ② アニメーションの更新
+    // --------------------------------
+
+    // アニメーションがない場合は終了
+    if (modelHandle == -1 ||
+        animAttachIndex == -1 ||
+        animTotalTime <= 0.0f)
+    {
+        return;
+    }
+
+    // 再生時間を進める
     animTime += deltaTime * 30.0f;
 
     // アニメーションをループさせる
-    if (animTotalTime > 0.0f)
+    if (animTime >= animTotalTime)
     {
-        if (animTime >= animTotalTime)
-        {
-            animTime = std::fmod(animTime, animTotalTime);
-        }
+        animTime = std::fmod(animTime, animTotalTime);
     }
 
     // 再生時間をモデルに反映
@@ -148,17 +233,174 @@ void Boss::Draw()
         animTime,
         animTotalTime
     );
+
+    ////
+    DrawFormatString(
+        10, 240,
+        GetColor(255, 255, 0),
+        "Lane: %d",
+        currentLane
+    );
+
+    DrawFormatString(
+        10, 260,
+        GetColor(255, 255, 0),
+        "Offset: %.2f / Target: %.2f",
+        laneOffset,
+        targetLaneOffset
+    );
+
+    DrawFormatString(
+        10, 280,
+        GetColor(255, 255, 0),
+        "Action: %d Timer: %.2f",
+        static_cast<int>(action),
+        actionTimer
+    );
 }
 
 // ボスの出現
-void Boss::Spawn(float startX, float startY, float startZ)
+void Boss::Spawn(float startCourseZ,float startLaneOffset,const CourseManager& courseManager)
 {
-    x = startX;
-    y = startY;
-    z = startZ;
+    bossCourseZ = startCourseZ;
 
-    hp = 50;
+    laneOffset = startLaneOffset;
+    targetLaneOffset = startLaneOffset;
+
+    currentLane = 1;
+
+    hp = INITIAL_HP;
     active = true;
+
+    action = BossAction::Idle;
+    actionTimer = 0.0f;
+
+    // 初期位置を計算
+    CoursePoint center =
+        courseManager.GetPosition(bossCourseZ);
+
+    CoursePoint right =
+        courseManager.GetRight(bossCourseZ);
+
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
+    y = 0.0f;
+}
+
+
+// 弾がボスに命中したか判定
+bool Boss::IsHit(
+    float bulletPreviousCourseZ,
+    float bulletCourseZ,
+    float bulletLaneOffset,
+    float bulletSize) const
+{
+    // ボスが出現していない、または撃破済みなら命中しない
+    if (!active || IsDead())
+    {
+        return false;
+    }
+
+    // 当たり判定の半分の大きさ
+    constexpr float HIT_HALF_WIDTH = 1.0f;
+    constexpr float HIT_HALF_DEPTH = 1.0f;
+    
+
+    // 横方向の当たり判定
+    float distanceX = std::fabs(bulletLaneOffset - laneOffset);
+
+    bool hitX = distanceX <= HIT_HALF_WIDTH + bulletSize;
+
+    // 奥行き方向の当たり判定（弾の移動区間を調べる）
+    bool hitZ =
+        bulletPreviousCourseZ <= bossCourseZ + HIT_HALF_DEPTH + bulletSize &&
+        bulletCourseZ >= bossCourseZ - HIT_HALF_DEPTH - bulletSize;
+
+    return hitX && hitZ;
+}
+
+
+
+// ダメージを受ける
+void Boss::TakeDamage(int damage)
+{
+    if (!active || IsDead() || damage <= 0)
+    {
+        return;
+    }
+
+    hp -= damage;
+
+    if (hp <= 0)
+    {
+        hp = 0;
+        action = BossAction::Dead;
+        actionTimer = 0.0f;
+    }
+}
+
+
+// レーンを滑らかに移動させる
+void Boss::UpdateLane(float deltaTime)
+{
+    float difference = targetLaneOffset - laneOffset;
+
+    float moveDistance = laneMoveSpeed * deltaTime;
+
+    // 目標までの距離が移動量以下なら到着
+    if (std::fabs(difference) <= moveDistance)
+    {
+        laneOffset = targetLaneOffset;
+    }
+    else
+    {
+        // 目標方向へ移動
+        if (difference > 0.0f)
+        {
+            laneOffset += moveDistance;
+        }
+        else
+        {
+            laneOffset -= moveDistance;
+        }
+    }
+}
+
+
+void Boss::Reset()
+{
+    // HPを初期値に戻す
+    hp = INITIAL_HP;
+
+    // ボスを未出現状態にする
+    active = false;
+
+    // 座標を初期化
+    x = 0.0f;
+    y = 0.0f;
+    z = 0.0f;
+
+    // 行動状態を初期化
+    action = BossAction::Idle;
+    actionTimer = 0.0f;
+
+    // アニメーション時間を初期化
+    animTime = 0.0f;
+
+    // 読み込み済みモデルがある場合は姿勢も初期化
+    if (modelHandle != -1 && animAttachIndex != -1)
+    {
+        MV1SetAttachAnimTime(
+            modelHandle,
+            animAttachIndex,
+            animTime
+        );
+    }
+}
+
+BossAction Boss::GetAction() const
+{
+    return action;
 }
 
 // 撃破判定
@@ -178,20 +420,3 @@ int Boss::GetHP() const
 {
     return hp;
 }
-
-// ダメージを受ける
-void Boss::TakeDamage(int damage)
-{
-    if (!active || damage <= 0)
-    {
-        return;
-    }
-
-    hp -= damage;
-
-    if (hp < 0)
-    {
-        hp = 0;
-    }
-}
-

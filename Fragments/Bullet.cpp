@@ -8,6 +8,10 @@ void Bullet::Update(float deltaTime,const CourseManager& courseManager)
     {
         return;
 	}
+
+    // 移動前の位置を保存
+    previousCourseZ = courseZ;
+
 	//弾のコース上の位置を更新する
     courseZ += speed * deltaTime;
 
@@ -35,10 +39,10 @@ void Bullet::Draw()
 
     //立方体の弾
     DrawCube3D(
-        VGet(x - 0.15f, y - 0.15f, z - 0.15f),
-        VGet(x + 0.15f, y + 0.15f, z + 0.15f),
-        GetColor(255, 255, 0),
-        GetColor(255, 255, 0),
+        VGet(x - size, y - size, z - size),
+        VGet(x + size, y + size, z + size),
+        GetColor(0, 255, 255),
+        GetColor(0, 255, 255),
         TRUE
     );
 }

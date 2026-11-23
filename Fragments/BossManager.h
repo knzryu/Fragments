@@ -1,47 +1,81 @@
 #pragma once
 
 #include "Boss.h"
+#include "BossManager.h"
+
 class CourseManager;
+
+//ボスの進行状態
+enum class BossPhase
+{
+	Normal,    //通常ラン
+	Warning,   //ボス予告
+	Battle     //ボス戦フェーズ
+};
+
+
+enum class BossLane
+{
+	Left,   // 0
+	Center, // 1
+	Right   // 2
+};
+
 
 class BossManager
 {
 private:
 
-	// 中ボス本体
+	// ボス本体
 	Boss boss;
 
-	//中ボスの出現距離
-	float spawnDistance = 10.0f;
+	//現在のボス進行状況
+	BossPhase phase = BossPhase::Normal;
 
-	//中ボスが出現したか
-	bool hasSpawned = false;
+	//ボス出現間隔
+	//float bossInterval = 1000.0f;
 
-	
+	//ボス出現前の予告距離
+	float warningDistance = 100.0f;
+
+	// 次のボス出現距離
+	float nextBossDistance = 1000.0f;
+
 
 public:
-	// 中ボスモデルの読み込み
+	// ボスモデルの読み込み
 	bool LoadModel();
 
-	// 中ボスモデルの解放
+	// ボスモデルの解放
 	void ReleaseModel();
 
-	// 中ボスの更新
+	void Reset(); 
+
+	// ボスの更新
 	void Update(float playerCourseZ,float deltaTime,const CourseManager& courseManager);
 
-	// 中ボスの描画
+	// ボスの描画
 	void Draw();
+
+	// 弾が命中した場合、ボスにダメージを与える
+	bool ApplyBulletHit(
+		float bulletPreviousCourseZ,
+		float bulletCourseZ,
+		float bulletLaneOffset,
+		float bulletSize,
+		int damage);
 
 	// ボスが戦闘中か確認する
 	bool IsBossActive() const;
 
-	//出現距離を設定
-	void SetSpawnDistance(float distance);
+	// ボスのHPを取得する
+	int GetBossHP() const;
 
-	//出現距離を取得
-	float GetSpawnDistance() const;
+	// 現在の進行状況を取得
+	BossPhase GetPhase() const;
 
-	//中ボスの出現判定
-	bool CheckSpawn(float playerCourseZ);
+	// 次のボス出現距離を取得
+	float GetNextBossDistance() const;
 
 };
 

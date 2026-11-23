@@ -1,94 +1,147 @@
 #include "BossManager.h"
 #include "CourseManager.h"
 
-// 中ボスモデルの読み込み
+// ボスモデルの読み込み
 bool BossManager::LoadModel()
 {
-	return boss.LoadModel();
+    return boss.LoadModel();
 }
 
-// 中ボスモデルの解放
+// ボスモデルの解放
 void BossManager::ReleaseModel()
 {
-	boss.ReleaseModel();
+    boss.ReleaseModel();
 }
 
+// ボスの状態をリセット
+void BossManager::Reset()
+{
+    phase = BossPhase::Normal;
 
-// 中ボスの更新
+    nextBossDistance = 1000.0f;
+
+    boss.Reset();
+}
+
+// ボスの更新
 void BossManager::Update(
-	float playerCourseZ,
-	float deltaTime,
-	const CourseManager& courseManager
-)
+    float playerCourseZ,
+    float deltaTime,
+    const CourseManager& courseManager)
 {
-	if (!hasSpawned)
-	{
-		if (CheckSpawn(playerCourseZ))
-		{
-			// プレイヤーの30m先にあるコース中心座標を取得
-			CoursePoint spawnPosition =
-				courseManager.GetPosition(playerCourseZ + 30.0f);
+    // Normal → Warning
+    if (phase == BossPhase::Normal)
+    {
+        if (playerCourseZ >= nextBossDistance - warningDistance)
+        {
+            phase = BossPhase::Warning;
+        }
+    }
 
-			// 取得したワールド座標にボスを出現させる
-			boss.Spawn(
-				spawnPosition.x,
-				0.0f,
-				spawnPosition.z
-			);
-		}
-	}
+    // Warning → Battle
+    if (phase == BossPhase::Warning)
+    {
+        if (playerCourseZ >= nextBossDistance)
+        {
+            // プレイヤーの30m先、中央レーンに出現
+            boss.Spawn(
+                playerCourseZ + 30.0f,
+                0.0f,
+                courseManager
+            );
 
-	if (boss.IsActive())
-	{
-		boss.Update(deltaTime);
-	}
+            phase = BossPhase::Battle;
+        }
+    }
+
+
+    // ボスが生存している場合のみ更新
+    if (phase == BossPhase::Battle &&
+        boss.IsActive() &&
+        !boss.IsDead())
+    {
+        boss.Update(deltaTime, courseManager);
+    }
+
+    // ボス撃破判定
+    if (phase == BossPhase::Battle && boss.IsDead())
+    {
+        // 次のボス出現距離を1000m先に設定
+        nextBossDistance += 1000.0f;
+
+        // ボスの状態をリセット
+        boss.Reset();
+
+        // 通常プレイに戻す
+        phase = BossPhase::Normal;
+    }
 }
 
 
-//中ボスの出現距離を設定
-void BossManager::SetSpawnDistance(float distance)
+// 弾が命中した場合、ボスにダメージを与える
+bool BossManager::ApplyBulletHit(
+    float bulletPreviousCourseZ,
+    float bulletCourseZ,
+    float bulletLaneOffset,
+    float bulletSize,
+    int damage)
 {
-	if (distance < 0.0f)
-	{
-		return;
-	}
+    // ボス戦中でなければ判定しない
+    if (phase != BossPhase::Battle)
+    {
+        return false;
+    }
 
-	spawnDistance = distance;
+    // ボスに命中していなければ終了
+    if (!boss.IsHit(
+        bulletPreviousCourseZ,
+        bulletCourseZ,
+        bulletLaneOffset,
+        bulletSize))
+    {
+        return false;
+    }
+
+    // ダメージを与える
+    boss.TakeDamage(damage);
+
+    return true;
 }
 
-//中ボスの出現距離を取得
-float BossManager::GetSpawnDistance() const
-{
-	return spawnDistance;
-}
 
-//中ボスの出現判定
-bool BossManager::CheckSpawn(float playerCourseZ)
-{
-	if (hasSpawned)
-	{
-		return false;
-	}
-
-	if (playerCourseZ >= spawnDistance)
-	{
-		hasSpawned = true;
-		return true;
-	}
-
-	return false;
-}
-
-// 中ボスの描画
+// ボスの描画
 void BossManager::Draw()
 {
-	if (boss.IsActive())
-	{
-		boss.Draw();
-	}
+    if (phase == BossPhase::Battle &&
+        boss.IsActive() &&
+        !boss.IsDead())
+    {
+        boss.Draw();
+    }
 }
 
+// ボスが戦闘中か確認する
 bool BossManager::IsBossActive() const
 {
-	return boss.IsActive() && !boss.IsDead();
+    return phase == BossPhase::Battle &&
+        boss.IsActive() &&
+        !boss.IsDead();
+}
+
+// ボスのHPを取得する
+int BossManager::GetBossHP() const
+{
+    return boss.GetHP();
+}
+
+// 現在の進行状況を取得
+BossPhase BossManager::GetPhase() const
+{
+    return phase;
+}
+
+// 次のボス出現距離を取得
+float BossManager::GetNextBossDistance() const
+{
+    return nextBossDistance;
 }

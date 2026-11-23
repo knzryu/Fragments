@@ -16,7 +16,13 @@ public:
     void Initialize();
 
     // 弾の生成
-    void SpawnBullet(float courseZ, float laneOffset, float y,const CourseManager& courseManager);
+    void SpawnBullet(
+        float courseZ,
+        float laneOffset,
+        float y,
+        float bulletSize,
+        const CourseManager& courseManager
+    );
 
     // すべての弾を更新
     void UpdateAll(float deltaTime,const CourseManager& courseManager);

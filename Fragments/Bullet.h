@@ -11,13 +11,19 @@ public:
     float y = 1.0f;
     float z = 0.0f;
 
+    float previousCourseZ = 0.0f;
+
 	//コース上の位置
 	float courseZ = 0.0f;
+
 	float laneOffset = 0.0f;
 
 
     //弾がZ方向に進む速さ
     float speed = 80.0f;
+
+    // 弾のサイズ（中心から各方向への半径）
+    float size = 0.15f;
 
     //弾が有効かどうかbool型
     //true：有効、false：無効
