@@ -9,6 +9,7 @@
 
 ![Fragments Gameplay](gameplay.gif)
 ---
+![Boss Gameplay](boss_gameplay.gif)
 
 ## ■ 学習・実装している技術
 
