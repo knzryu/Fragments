@@ -64,6 +64,12 @@ public:
 		float bulletSize,
 		int damage);
 
+	// レーザーがプレイヤーに命中したか判定
+	bool IsPlayerHitByLaser(
+		VECTOR playerMin,
+		VECTOR playerMax
+	) const;
+
 	// ボスが戦闘中か確認する
 	bool IsBossActive() const;
 

@@ -134,6 +134,16 @@ void Boss::Update(float deltaTime, const CourseManager& courseManager)
 
         if (actionTimer >= 1.0f)
         {
+            action = BossAction::Charging;
+            actionTimer = 0.0f;
+        }
+        break;
+
+    case BossAction::Charging:
+
+        // チャージ完了で攻撃開始
+        if (actionTimer >= CHARGE_DURATION)
+        {
             action = BossAction::Attacking;
             actionTimer = 0.0f;
         }
@@ -163,6 +173,20 @@ void Boss::Update(float deltaTime, const CourseManager& courseManager)
         return;
     }
 
+    // コース中心を取得
+    CoursePoint center =
+        courseManager.GetPosition(bossCourseZ);
+
+    // コースの右方向を取得
+    CoursePoint right =
+        courseManager.GetRight(bossCourseZ);
+
+    // ワールド座標を更新
+    x = center.x + right.x * laneOffset;
+    z = center.z + right.z * laneOffset;
+
+
+
     // レーザーの予兆中だけ方向を更新する
     if (action == BossAction::Warning)
     {
@@ -188,20 +212,6 @@ void Boss::Update(float deltaTime, const CourseManager& courseManager)
             right
         );
     }
-
-
-    // コース中心を取得
-    CoursePoint center =
-        courseManager.GetPosition(bossCourseZ);
-
-    // コースの右方向を取得
-    CoursePoint right =
-        courseManager.GetRight(bossCourseZ);
-
-    // ワールド座標を更新
-    x = center.x + right.x * laneOffset;
-    z = center.z + right.z * laneOffset;
-
 
     // --------------------------------
     // ② アニメーションの更新
@@ -256,10 +266,22 @@ void Boss::Draw()
         MV1DrawModel(modelHandle);
     }
 
-    // 警告中はレーザーの予兆線を描画
+    // 行動状態によってレーザーの見た目を切り替える
     if (action == BossAction::Warning)
     {
+        // 予兆中：オレンジ色の細い線
         laserAttack.DrawWarning();
+    }
+    else if (action == BossAction::Charging)
+    {
+        float progress = actionTimer / CHARGE_DURATION;
+
+        laserAttack.DrawCharge(progress);
+    }
+    else if (action == BossAction::Attacking)
+    {
+        // 攻撃中：赤色の太いレーザー
+        laserAttack.DrawAttack();
     }
 }
 
@@ -323,6 +345,23 @@ bool Boss::IsHit(
     return hitX && hitZ;
 }
 
+// レーザーがプレイヤーに命中したか判定
+bool Boss::IsLaserHit(
+    VECTOR playerMin,
+    VECTOR playerMax) const
+{
+    // 攻撃中以外は命中しない
+    if (!active || IsDead() ||
+        action != BossAction::Attacking)
+    {
+        return false;
+    }
+
+    return laserAttack.IsHit(
+        playerMin,
+        playerMax
+    );
+}
 
 
 // ダメージを受ける

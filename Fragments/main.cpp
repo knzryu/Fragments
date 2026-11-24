@@ -579,6 +579,20 @@ int WINAPI WinMain(
                     break;
                 }
             }
+
+            // ボスのレーザーとの衝突判定
+            if (gameManager.GetGameState() == GameState::Playing)
+            {
+                bool isLaserHit = bossManager.IsPlayerHitByLaser(
+                    VGet(playerMinX, playerMinY, playerMinZ),
+                    VGet(playerMaxX, playerMaxY, playerMaxZ)
+                );
+
+                if (isLaserHit)
+                {
+                    gameManager.SetGameState(GameState::GameOver);
+                }
+            }
         }
         
         // GameOverからResultへ遷移

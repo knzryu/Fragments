@@ -108,6 +108,22 @@ bool BossManager::ApplyBulletHit(
     return true;
 }
 
+// レーザーがプレイヤーに命中したか判定
+bool BossManager::IsPlayerHitByLaser(
+    VECTOR playerMin,
+    VECTOR playerMax) const
+{
+    // ボス戦中でなければ判定しない
+    if (phase != BossPhase::Battle)
+    {
+        return false;
+    }
+
+    return boss.IsLaserHit(
+        playerMin,
+        playerMax
+    );
+}
 
 // ボスの描画
 void BossManager::Draw()

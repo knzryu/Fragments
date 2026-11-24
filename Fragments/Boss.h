@@ -9,6 +9,7 @@ enum class BossAction
 {
     Idle,       // 待機
     Warning,    // 攻撃予兆
+    Charging,   // チャージ中
     Attacking,  // 攻撃中
     Recovery,   // 攻撃後の硬直
     Dead        // 撃破
@@ -33,6 +34,9 @@ private:
 
     // ボス攻撃
     LaserAttack laserAttack;
+
+    // チャージ時間
+    static constexpr float CHARGE_DURATION = 0.5f;
 
     // 現在の行動状態が続いた時間
     float actionTimer = 0.0f;
@@ -104,6 +108,12 @@ public:
         float bulletCourseZ,
         float bulletLaneOffset,
         float bulletSize
+    ) const;
+
+    // レーザーがプレイヤーに命中したか判定
+    bool IsLaserHit(
+        VECTOR playerMin,
+        VECTOR playerMax
     ) const;
 
     // 撃破判定

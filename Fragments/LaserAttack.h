@@ -17,8 +17,13 @@ private:
     // レーザーの長さ
     static constexpr float LASER_LENGTH = 80.0f;
 
+    // レーザーの太さ（半径）
+    static constexpr float LASER_RADIUS = 0.25f;
+
     // 左右に広げる角度
-    static constexpr float LASER_ANGLE = 20.0f;
+    static constexpr float LASER_ANGLE = 10.0f;
+
+   
 
 public:
 
@@ -29,6 +34,19 @@ public:
         CoursePoint right
     );
 
+    // レーザーがプレイヤーに命中したか判定
+    bool IsHit(
+        VECTOR playerMin,
+        VECTOR playerMax
+    ) const;
+
+    // チャージ中のエネルギー球を描画
+    void DrawCharge(float progress) const;
+
     // 予兆線を描画
     void DrawWarning() const;
+
+    // 攻撃中のレーザーを描画
+    void DrawAttack() const;
+
 };
