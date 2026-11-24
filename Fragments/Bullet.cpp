@@ -1,5 +1,6 @@
 #include "DxLib.h"
 #include "Bullet.h"
+#include <cmath>
 
 //’eˆÚ“®ˆ—
 void Bullet::Update(float deltaTime,const CourseManager& courseManager)
@@ -17,6 +18,8 @@ void Bullet::Update(float deltaTime,const CourseManager& courseManager)
 
     // ƒ[ƒ‹ƒhÀ•W‚ğXV
     UpdatePosition(courseManager);
+
+    
 }
 
 void Bullet::UpdatePosition(const CourseManager& courseManager)
@@ -28,21 +31,23 @@ void Bullet::UpdatePosition(const CourseManager& courseManager)
     z = center.z + right.z * laneOffset;
 }
 
-//•`‰æˆ—
+// •`‰æˆ—
 void Bullet::Draw()
 {
-    //’e‚ª–³Œø‚È‚çA‚±‚±‚ÅŠÖ”‚ğI—¹‚·‚é
+    // ’e‚ª–³Œø‚È‚ç•`‰æ‚µ‚È‚¢
     if (!active)
     {
         return;
     }
 
-    //—§•û‘Ì‚Ì’e
-    DrawCube3D(
-        VGet(x - size, y - size, z - size),
-        VGet(x + size, y + size, z + size),
-        GetColor(0, 255, 255),
-        GetColor(0, 255, 255),
-        TRUE
+    // Â”’‚¢ƒGƒlƒ‹ƒM[’e
+    DrawSphere3D(
+        VGet(x, y, z),           // ‹…‚Ì’†SÀ•W
+        size,                    // ’e‚Ì”¼Œa
+        16,                      // ‹…‚Ì•ªŠ„”
+        GetColor(30, 180, 255),  // ÂF‚Ì–{‘Ì
+        GetColor(220, 250, 255), // ”’‚É‹ß‚¢”½ËF
+        TRUE                     // “h‚è‚Â‚Ô‚·
     );
 }
+

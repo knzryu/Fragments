@@ -4,6 +4,7 @@
 #include <vector>
 #include "Bullet.h"
 #include "CourseManager.h"
+#include <array>
 
 class BulletManager
 {
@@ -11,9 +12,13 @@ private:
     // 弾を管理する配列
     std::vector<Bullet> bullets;
 
+  
+
 public:
     // 弾の初期化
     void Initialize();
+
+  
 
     // 弾の生成
     void SpawnBullet(

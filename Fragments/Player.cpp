@@ -15,6 +15,7 @@ void Player::Initialize()
     attackPower = INITIAL_ATTACK_POWER;
     bulletSpeed = INITIAL_BULLET_SPEED;
     bulletSize = INITIAL_BULLET_SIZE;
+    shotCooldown = INITIAL_SHOT_COOLDOWN;
 
     courseZ = 0.0f;
     laneOffset = 0.0f;
@@ -27,6 +28,8 @@ void Player::Initialize()
         printfDx("PlayerModel.mv1の読み込みに失敗しました");
         return;
     }
+
+  
 
     // モデルが持っているアニメーション数を確認
     int animNum = MV1GetAnimNum(modelHandle);
@@ -67,6 +70,7 @@ void Player::Reset()
     forwardSpeed = INITIAL_FORWARD_SPEED;
     sideSpeed = INITIAL_SIDE_SPEED;
     bulletSize = INITIAL_BULLET_SIZE;
+    shotCooldown = INITIAL_SHOT_COOLDOWN;
 
     // 能力値を初期化
     attackPower = INITIAL_ATTACK_POWER;
@@ -84,6 +88,7 @@ void Player::Reset()
         );
     }
 }
+
 
 //描画
 void Player::Draw()
@@ -243,6 +248,25 @@ void Player::SetBulletSize(float newSize)
     }
 
     bulletSize = newSize;
+}
+
+//射撃クールタイム取得
+float Player::GetShotCooldown() const
+{
+    return shotCooldown;
+}
+
+//射撃クールタイムを設定
+void Player::SetShotCooldown(float newCooldown)
+{
+    //最短クールタイムを下回らないようにする
+    if (newCooldown < MIN_SHOT_COOLDOWN)
+    {
+        shotCooldown = MIN_SHOT_COOLDOWN;
+        return;
+    }
+
+    shotCooldown = newCooldown;
 }
 
 void Player::Finalize()

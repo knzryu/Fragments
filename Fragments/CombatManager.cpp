@@ -6,7 +6,6 @@
 // クールタイム初期化
 void CombatManager::Initialize()
 {
-    shotCooldown = INITIAL_SHOT_COOLDOWN;
     shotTimer = 0.0f;
 }
 
@@ -31,9 +30,9 @@ bool CombatManager::CanShot() const
 }
 
 // クールタイム開始
-void CombatManager::StartCooldown()
+void CombatManager::StartCooldown(float cooldown)
 {
-    shotTimer = shotCooldown;
+    shotTimer = cooldown;
 }
 
 // 残り時間取得
@@ -42,16 +41,6 @@ float CombatManager::GetShotTimer() const
     return shotTimer;
 }
 
-// クールタイムを短縮
-void CombatManager::ReduceShotCooldown()
-{
-    shotCooldown -= COOLDOWN_REDUCTION_AMOUNT;
-
-    if (shotCooldown < MIN_SHOT_COOLDOWN)
-    {
-        shotCooldown = MIN_SHOT_COOLDOWN;
-    }
-}
 
 bool CombatManager::Update(
     EnemyManager& enemyManager,

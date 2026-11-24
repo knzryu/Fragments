@@ -469,50 +469,63 @@ int WINAPI WinMain(
 
       
         
-
-        //能力選択画面
+        //能力選択画面（いずれ分離する予定）
         if (gameManager.GetGameState() == GameState::AbilitySelect && leftClickDown)
         {
             int mouseX, mouseY;
             GetMousePoint(&mouseX, &mouseY);
 
-            // 攻撃力カード
+            // 攻撃力カUP
             if (mouseX >= 300 && mouseX <= 500 &&
                 mouseY >= 280 && mouseY <= 480)
             {
                 abilityChoice = 1;
             }
-            // 移動速度カード
+            // 弾サイズUP
             else if (mouseX >= 540 && mouseX <= 740 &&
                 mouseY >= 280 && mouseY <= 480)
             {
                 abilityChoice = 2;
             }
-            // 弾速カード
+            // クールタイム短縮
             else if (mouseX >= 780 && mouseX <= 980 &&
                 mouseY >= 280 && mouseY <= 480)
             {
                 abilityChoice = 3;
             }
 
+            //選択した能力選択を適用
             if (abilityChoice != -1)
             {
                 if (abilityChoice == 1)
                 {
-                    player.SetAttackPower(player.GetAttackPower() + 1);
+                    player.SetAttackPower(
+                        player.GetAttackPower() + 1
+                    );
                 }
                 else if (abilityChoice == 2)
                 {
-                    player.SetForwardSpeed(12.0f);
+                    player.SetBulletSize(
+                        player.GetBulletSize() + 0.1f
+                    );
                 }
                 else if (abilityChoice == 3)
                 {
-                    player.SetBulletSpeed(player.GetBulletSpeed() + 10.0f);
+                    player.SetShotCooldown(
+                        player.GetShotCooldown() - 0.5f
+                    );
                 }
 
-                abilityChoice = -1;
-                gameManager.SetGameState(GameState::Playing);
             }
+
+            abilityChoice = -1;
+
+            //能力選択画面終了
+            gameManager.SetGameState(GameState::Playing);
+
+            //選択クリックを射撃に適用させない
+            clickConsumed = true;
+           
         }
 
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
@@ -781,14 +794,12 @@ int WINAPI WinMain(
             }
 
             // コースの最後の制御点を確認
-
-
-            DrawFormatString(
+            /*DrawFormatString(
                 20, 160,
                 GetColor(255, 255, 255),
                 "Last Control Z: %.2f",
                 points.back().z
-            );
+            );*/
 
             //---------------------------------------
 
@@ -945,7 +956,7 @@ int WINAPI WinMain(
                     "ATTACK +1"
                 );
 
-                // 移動速度カード
+                // 弾サイズ
                 DrawBox(
                     540, 280, 740, 480,
                     GetColor(35, 85, 60), TRUE
@@ -953,10 +964,10 @@ int WINAPI WinMain(
                 DrawFormatString(
                     565, 330,
                     GetColor(160, 255, 190),
-                    "SPEED +2"
+                    "BULLET SIZE +"
                 );
 
-                // 弾速カード
+                // クールタイム短縮
                 DrawBox(
                     780, 280, 980, 480,
                     GetColor(35, 60, 100), TRUE
@@ -964,7 +975,7 @@ int WINAPI WinMain(
                 DrawFormatString(
                     810, 330,
                     GetColor(170, 210, 255),
-                    "BULLET +10"
+                    "COOLDOWN -0.5s"
                 );
             }
 

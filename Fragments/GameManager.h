@@ -106,8 +106,6 @@ public:
 		BossManager& bossManager
 	);
 
-	// 射撃クールタイムを短縮
-	void ReduceShotCooldown();
 
 	//リザルトデータを取得
 	const ResultData& GetResultData() const;

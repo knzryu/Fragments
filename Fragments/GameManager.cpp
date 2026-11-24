@@ -183,7 +183,7 @@ bool GameManager::TryShot(const CourseManager& courseManager)
 	);
 
 	// クールタイム開始
-	combatManager.StartCooldown();
+	combatManager.StartCooldown(player.GetShotCooldown());
 
 	return true;
 }
@@ -194,8 +194,3 @@ float GameManager::GetShotCooldown() const
 	return combatManager.GetShotTimer();
 }
 
-// 射撃クールタイムを短縮
-void GameManager::ReduceShotCooldown()
-{
-	combatManager.ReduceShotCooldown();
-}

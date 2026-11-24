@@ -146,6 +146,7 @@
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyManager.cpp" />
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="LaserAttack.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Obstacle.cpp" />
     <ClCompile Include="ObstacleManager.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="EnemyManager.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameState.h" />
+    <ClInclude Include="LaserAttack.h" />
     <ClInclude Include="Obstacle.h" />
     <ClInclude Include="ObstacleManager.h" />
     <ClInclude Include="Player.h" />

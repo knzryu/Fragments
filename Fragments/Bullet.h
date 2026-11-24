@@ -5,6 +5,9 @@
 
 class Bullet
 {
+private:
+   
+
 public:
     //’e‚ÌÀ•W
     float x = 0.0f;
@@ -31,6 +34,8 @@ public:
 
     //
 
+    
+
     //’e‚ğˆÚ“®‚³‚¹‚éŠÖ”‚ÌéŒ¾
     void Update(float deltaTime,const CourseManager & coursManager);
 
@@ -39,8 +44,6 @@ public:
 
     //•`‰æ
     void Draw();
-
-private:
     
 };
 

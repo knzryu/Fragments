@@ -163,6 +163,32 @@ void Boss::Update(float deltaTime, const CourseManager& courseManager)
         return;
     }
 
+    // レーザーの予兆中だけ方向を更新する
+    if (action == BossAction::Warning)
+    {
+        // コースの進行方向を取得
+        CoursePoint forward =
+            courseManager.GetDirection(bossCourseZ);
+
+        // コースの右方向を取得
+        CoursePoint right =
+            courseManager.GetRight(bossCourseZ);
+
+        // レーザーの始点をボスの位置に設定
+        VECTOR origin = VGet(
+            x,
+            y + 2.0f,
+            z
+        );
+
+        // 3本のレーザーの方向を計算
+        laserAttack.SetDirection(
+            origin,
+            forward,
+            right
+        );
+    }
+
 
     // コース中心を取得
     CoursePoint center =
@@ -206,57 +232,35 @@ void Boss::Update(float deltaTime, const CourseManager& courseManager)
     );
 }
 
-// 大ボスの描画
+// ボスの描画
 void Boss::Draw()
 {
-    if (!active || modelHandle == -1)
+    if (!active)
     {
         return;
     }
 
-    MV1SetScale(
-        modelHandle,
-        VGet(0.01f, 0.01f, 0.01f)
-    );
+    // ボスモデルの描画
+    if (modelHandle != -1)
+    {
+        MV1SetScale(
+            modelHandle,
+            VGet(0.01f, 0.01f, 0.01f)
+        );
 
-    MV1SetPosition(
-        modelHandle,
-        VGet(x, y, z)
-    );
+        MV1SetPosition(
+            modelHandle,
+            VGet(x, y, z)
+        );
 
-    MV1DrawModel(modelHandle);
+        MV1DrawModel(modelHandle);
+    }
 
-    DrawFormatString(
-        10, 200,
-        GetColor(255, 255, 255),
-        "Anim: %.2f / %.2f",
-        animTime,
-        animTotalTime
-    );
-
-    ////
-    DrawFormatString(
-        10, 240,
-        GetColor(255, 255, 0),
-        "Lane: %d",
-        currentLane
-    );
-
-    DrawFormatString(
-        10, 260,
-        GetColor(255, 255, 0),
-        "Offset: %.2f / Target: %.2f",
-        laneOffset,
-        targetLaneOffset
-    );
-
-    DrawFormatString(
-        10, 280,
-        GetColor(255, 255, 0),
-        "Action: %d Timer: %.2f",
-        static_cast<int>(action),
-        actionTimer
-    );
+    // 警告中はレーザーの予兆線を描画
+    if (action == BossAction::Warning)
+    {
+        laserAttack.DrawWarning();
+    }
 }
 
 // ボスの出現

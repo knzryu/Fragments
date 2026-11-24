@@ -18,27 +18,6 @@ private:
     float x = 0.0f;
     float z = 0.0f;
 
-    //------------</初期ステータス/>-----------------
-
-    //移動速度   constexprで初期値を定数にする
-    static constexpr float INITIAL_FORWARD_SPEED = 30.0f;
-    //左右
-    static constexpr float INITIAL_SIDE_SPEED = 5.0;
-    //弾サイズ
-    static constexpr float INITIAL_BULLET_SIZE = 0.15f;
-
-    float forwardSpeed = INITIAL_FORWARD_SPEED;
-    float sideSpeed = INITIAL_SIDE_SPEED;
-
-    // プレイヤーの能力値の初期値
-    static constexpr int INITIAL_ATTACK_POWER = 1;
-    static constexpr float INITIAL_BULLET_SPEED = 30.0f;
-
-    // プレイヤーの能力値
-    int attackPower = INITIAL_ATTACK_POWER;
-    float bulletSpeed = INITIAL_BULLET_SPEED;
-    float bulletSize = INITIAL_BULLET_SIZE;
-
     // コース上の進行位置
     float courseZ = 0.0f;
 
@@ -49,7 +28,33 @@ private:
     // コース中心からの横方向の距離
     float laneOffset = 0.0f;
 
+    float forwardSpeed = INITIAL_FORWARD_SPEED;
+    float sideSpeed = INITIAL_SIDE_SPEED;
 
+
+    //------------</初期ステータス/>-----------------
+
+    //移動速度   constexprで初期値を定数にする
+    static constexpr float INITIAL_FORWARD_SPEED = 30.0f;
+    //左右
+    static constexpr float INITIAL_SIDE_SPEED = 5.0;
+    //弾スピード
+    static constexpr float INITIAL_BULLET_SPEED = 30.0f;
+    //弾サイズ
+    static constexpr float INITIAL_BULLET_SIZE = 0.15f;
+    // プレイヤーの能力値の初期値
+    static constexpr int INITIAL_ATTACK_POWER = 1;
+
+
+    //射撃クールタイム
+    static constexpr float INITIAL_SHOT_COOLDOWN = 0.0f;
+    static constexpr float MIN_SHOT_COOLDOWN = 1.0f;
+
+    // プレイヤーの能力値
+    int attackPower = INITIAL_ATTACK_POWER;
+    float bulletSpeed = INITIAL_BULLET_SPEED;
+    float bulletSize = INITIAL_BULLET_SIZE;
+    float shotCooldown = INITIAL_SHOT_COOLDOWN;
 
 
 public:
@@ -82,6 +87,10 @@ public:
     //弾サイズの取得・設定
     float GetBulletSize() const;
     void SetBulletSize(float newSize);
+
+    //射撃クールタイム
+    float GetShotCooldown() const;
+    void SetShotCooldown(float newCooldown);
 
     //初期化
 	void Initialize();

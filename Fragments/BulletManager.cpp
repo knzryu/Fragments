@@ -6,6 +6,8 @@ void BulletManager::Initialize()
     Clear();
 }
 
+
+
 // 弾の生成
 void BulletManager::SpawnBullet(
     float courseZ,

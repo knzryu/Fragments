@@ -1,5 +1,7 @@
 #pragma once
 
+#include "LaserAttack.h"
+
 class CourseManager;
 
 // ボスの行動状態
@@ -28,6 +30,9 @@ private:
 
     // 現在の行動状態
     BossAction action = BossAction::Idle;
+
+    // ボス攻撃
+    LaserAttack laserAttack;
 
     // 現在の行動状態が続いた時間
     float actionTimer = 0.0f;

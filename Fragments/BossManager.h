@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Boss.h"
-#include "BossManager.h"
 
 class CourseManager;
 
