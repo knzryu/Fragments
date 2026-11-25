@@ -66,6 +66,9 @@ private:
     // モデルハンドル
     int modelHandle = -1;
 
+    //レーザー用テクスチャハンドル
+    int laserTextureHandle = -1;
+
     // アニメーションのアタッチ番号
     int animAttachIndex = -1;
 

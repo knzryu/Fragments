@@ -35,7 +35,7 @@ private:
 	//float bossInterval = 1000.0f;
 
 	//ボス出現前の予告距離
-	float warningDistance = 100.0f;
+	float warningDistance = 50.0f;
 
 	// 次のボス出現距離
 	float nextBossDistance = 1000.0f;

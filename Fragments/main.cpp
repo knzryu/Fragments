@@ -793,8 +793,7 @@ int WINAPI WinMain(
             //敵を描画
             enemyManager.DrawAll();
 
-            // ボスの描画
-            bossManager.Draw();
+            
 
             // ボス戦中のみHPを表示
             if (bossManager.IsBossActive())
@@ -910,6 +909,10 @@ int WINAPI WinMain(
                 //DrawLine3D(leftNear, leftFar, GetColor(0, 255, 255));
                 //DrawLine3D(rightNearPos, rightFarPos, GetColor(0, 255, 255));
             }
+
+            //ボスの描画
+            bossManager.Draw();
+
 
             //-----------------------------------------
 

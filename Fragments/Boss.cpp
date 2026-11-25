@@ -6,6 +6,25 @@
 // 大ボスモデルの読み込み
 bool Boss::LoadModel()
 {
+    
+    // レーザー用テクスチャを読み込む
+    if (laserTextureHandle == -1)
+    {
+        laserTextureHandle =
+            LoadGraph("Resource/Effect/LaserBeamTexture.png");
+
+        if (laserTextureHandle == -1)
+        {
+            printf("Laser Texture Load Failed\n");
+            return false;
+        }
+
+        laserAttack.SetTextureHandle(laserTextureHandle);
+    }
+
+    //----------------------------------------
+    //         bossモデル
+
     // すでに読み込んでいる場合
     if (modelHandle != -1)
     {
@@ -76,6 +95,15 @@ bool Boss::LoadModel()
 
 void Boss::ReleaseModel()
 {
+    // レーザー用テクスチャを解放
+    if (laserTextureHandle != -1)
+    {
+        DeleteGraph(laserTextureHandle);
+        laserTextureHandle = -1;
+
+        laserAttack.SetTextureHandle(-1);
+    }
+    //ボス用モデル解放
     if (modelHandle != -1)
     {
         if (animAttachIndex != -1)
@@ -282,6 +310,12 @@ void Boss::Draw()
     {
         // 攻撃中：赤色の太いレーザー
         laserAttack.DrawAttack();
+    }
+    else if (action == BossAction::Recovery)
+    {
+        float progress = actionTimer / 1.2f;
+
+        laserAttack.DrawEnd(progress);
     }
 }
 

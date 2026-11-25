@@ -133,18 +133,27 @@ void LaserAttack::DrawWarning() const
 // 攻撃中のレーザーを描画
 void LaserAttack::DrawAttack() const
 {
+    if (textureHandle == -1)
+    {
+        return;
+    }
+
     for (int i = 0; i < 3; i++)
     {
-        DrawCapsule3D(
+        DrawLaserBeam(
             startPosition,
             endPositions[i],
-            LASER_RADIUS,
-            8,
-            GetColor(255, 40, 40),
-            GetColor(255, 255, 255),
-            TRUE
+            LASER_VISUAL_WIDTH,
+            textureHandle
         );
     }
+}
+
+//レーザー消失演出
+void LaserAttack::DrawEnd(float progress) const
+{
+    
+    //追加予定
 }
 
 
@@ -164,7 +173,7 @@ void LaserAttack::DrawCharge(float progress) const
     // 時間経過で球を大きくする
     float radius = 0.3f + progress * 0.9f;
 
-    // 外側の赤いエネルギー球
+    /*外側の赤いエネルギー球
     DrawSphere3D(
         startPosition,
         radius,
@@ -182,7 +191,7 @@ void LaserAttack::DrawCharge(float progress) const
         GetColor(255, 255, 255),
         GetColor(255, 255, 255),
         TRUE
-    );
+    );*/
 }
 
 
@@ -216,4 +225,9 @@ bool LaserAttack::IsHit(
     }
 
     return false;
+}
+
+void LaserAttack::SetTextureHandle(int handle)
+{
+    textureHandle = handle;
 }
