@@ -10,7 +10,9 @@ namespace
         VECTOR start,
         VECTOR end,
         float width,
-        int textureHandle)
+        int textureHandle,
+        int blendMode,
+        int blendParam)
     {
         // 始点から終点への方向ベクトル
         VECTOR direction = VSub(end, start);
@@ -80,18 +82,19 @@ namespace
         // Zバッファへの書き込みを無効化
         SetWriteZBuffer3D(FALSE);
 
-       
+        //合成方式を設定
+        SetDrawBlendMode(blendMode, blendParam);
 
-        // 2つの三角形を描画
+        // ポリゴン描画
         DrawPolygon3D(
             vertex,
             2,
             textureHandle,
             TRUE
         );
+
         // 描画設定を元に戻す
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-
         // Zバッファへの書き込みを再び有効化
         SetWriteZBuffer3D(TRUE);
         // ライティングを元に戻す

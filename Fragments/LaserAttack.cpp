@@ -143,8 +143,21 @@ void LaserAttack::DrawAttack() const
         DrawLaserBeam(
             startPosition,
             endPositions[i],
+            LASER_VISUAL_WIDTH * 1.5f,
+            textureHandle,
+            DX_BLENDMODE_ADD,
+            70
+        );
+
+        //中心のレーザー
+           // ② 中心のレーザー
+        DrawLaserBeam(
+            startPosition,
+            endPositions[i],
             LASER_VISUAL_WIDTH,
-            textureHandle
+            textureHandle,
+            DX_BLENDMODE_ADD,
+            255
         );
     }
 }
