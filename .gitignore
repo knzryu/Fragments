@@ -369,7 +369,7 @@ FodyWeavers.xsd
 # Blender backup files (keep the original .blend files)
 *.blend1
 *.blend2
-*.blend@ 
+*.blend@
 
 # Windows / macOS file-browser metadata
 Thumbs.db
