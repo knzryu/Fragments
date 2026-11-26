@@ -361,3 +361,23 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+###############################################################################
+# Fragments: local asset-authoring and OS temporary files
+###############################################################################
+
+# Blender backup files (keep the original .blend files)
+*.blend1
+*.blend2
+*.blend@ 
+
+# Windows / macOS file-browser metadata
+Thumbs.db
+.DS_Store
+
+# Local crash dumps
+*.dmp
+
+# NOTE:
+# Do NOT ignore Resource/, *.mv1, *.fbx, *.png, *.jpg, or other game assets.
+# Runtime assets must be committed so the project works on other PCs.
