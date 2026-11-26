@@ -4,26 +4,46 @@
 #include <vector>
 #include "Obstacle.h"
 
+#include <vector>
+#include "Obstacle.h"
+
 class ObstacleManager
 {
 private:
+    // “Ç‚İ‚ñ‚¾áŠQ•¨ƒ‚ƒfƒ‹‚Ìƒnƒ“ƒhƒ‹
+    int modelHandle = -1;
+
+    // ŠÇ—‚µ‚Ä‚¢‚éáŠQ•¨‚Ì”z—ñ
     std::vector<Obstacle> obstacles;
 
 public:
-	//áŠQ•¨‚ğ¶¬‚·‚éŠÖ”‚ÌéŒ¾
-    void SpawnObstacle(float courseZ, const CourseManager& courseManager);
-	//ƒvƒŒƒCƒ„[‚ÌŒã•û‚É‚ ‚éáŠQ•¨‚ğíœ‚·‚éŠÖ”‚ÌéŒ¾
+
+    // áŠQ•¨ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+    bool LoadModel();
+
+    // áŠQ•¨ƒ‚ƒfƒ‹‚Ì‰ğ•ú
+    void ReleaseModel();
+
+    // áŠQ•¨‚ğ¶¬
+    void SpawnObstacle(
+        float courseZ,
+        const CourseManager& courseManager
+    );
+
+    // ƒvƒŒƒCƒ„[‚ÌŒã•û‚É‚ ‚éáŠQ•¨‚ğíœ
     void RemovePassedObstacles(float playerZ);
-	//áŠQ•¨‚ğ‰Šúó‘Ô‚É–ß‚·ŠÖ”‚ÌéŒ¾
+
+    // áŠQ•¨‚ğ‰Šúó‘Ô‚É–ß‚·
     void Reset();
-	//áŠQ•¨‚ÌŒÂ”‚ğæ“¾‚·‚éŠÖ”‚ÌéŒ¾
+
+    // áŠQ•¨‚ÌŒÂ”‚ğæ“¾
     int GetCount() const;
-	//w’è‚µ‚½”Ô†‚ÌáŠQ•¨‚ğæ“¾‚·‚éŠÖ”‚ÌéŒ¾
+
+    // w’è‚µ‚½”Ô†‚ÌáŠQ•¨‚ğæ“¾
     Obstacle& GetObstacle(int index);
-	//áŠQ•¨‚ğ‚·‚×‚Ä•`‰æ‚·‚éŠÖ”‚ÌéŒ¾
+
+    // áŠQ•¨‚ğ‚·‚×‚Ä•`‰æ
     void DrawAll();
-
-
 };
 
 #endif

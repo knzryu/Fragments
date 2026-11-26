@@ -3,18 +3,22 @@
 
 
 
-//障害物の描画関数
-void Obstacle::Draw()
+// 障害物の描画
+// 障害物の描画
+void Obstacle::Draw(int modelHandle)
 {
-    //SetUseLighting(FALSE);
+    // 障害物の中心座標を計算
+    float centerX = (minX + maxX) / 2.0f;
+    float centerZ = (minZ + maxZ) / 2.0f;
 
-    DrawCube3D(
-        VGet(minX, minY, minZ),
-        VGet(maxX, maxY, maxZ),
-        GetColor(0, 255, 0),
-        GetColor(0, 255, 0),
-        TRUE
+    // 確認用：モデルを地面から大きく浮かせる
+    MV1SetPosition(
+        modelHandle,
+        VGet(centerX, minY + 0.08f, centerZ)
     );
+
+    // モデルを描画
+    MV1DrawModel(modelHandle);
 }
 
 // コース情報から障害物のワールド座標を更新する

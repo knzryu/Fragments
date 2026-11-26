@@ -42,6 +42,10 @@ public:
     // 敵の自動生成を更新
     void Update(float playerCourseZ, const CourseManager& courseManager);
 
+
+    // 敵の生成再開位置を設定
+    void ResetSpawnPosition(float playerCourseZ);
+
     // 敵の描画
     void DrawAll();
 

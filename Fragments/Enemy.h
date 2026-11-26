@@ -34,5 +34,6 @@ public:
     bool IsDead() const;
     // ó‚¯‚½ƒ_ƒ[ƒW•ª‚¾‚¯HP‚ğŒ¸‚ç‚·
     void TakeDamage(int damage);
+
 };
 #endif

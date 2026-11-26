@@ -25,6 +25,8 @@ void ResetGame(
     BossManager& bossManager,
     const CourseManager& courseManager,
     float& nextObstacleZ,
+    bool& isHazardWaiting,
+    float& bossDefeatedCourseZ,
     int& previousTime)
 {
     //ゲーム全体を初期状態に戻す
@@ -32,6 +34,13 @@ void ResetGame(
 
     // ボスの状態を初期化
     bossManager.Reset();
+
+
+    // ボス撃破後の待機状態を初期化
+    isHazardWaiting = false;
+
+    // ボス撃破時の距離を初期化
+    bossDefeatedCourseZ = 0.0f;
 
     //ゲーム状態をPlayingに戻す
     gameManager.SetGameState(GameState::Playing);
@@ -216,6 +225,20 @@ int WINAPI WinMain(
 
     //障害物管理オブジェクトを参照
     ObstacleManager& obstacleManager = gameManager.GetObstacleManager();
+    // 障害物モデルを読み込む
+    if (!obstacleManager.LoadModel())
+    {
+        MessageBox(
+            NULL,
+            "Obstacle Model Load Failed",
+            "Error",
+            MB_OK
+        );
+
+        DxLib_End();
+        return -1;
+    }
+
 
     // EnemyManagerを取得
     EnemyManager& enemyManager = gameManager.GetEnemyManager();
@@ -271,7 +294,11 @@ int WINAPI WinMain(
     float obstacleSpacing = 50.0f;
     //障害物初期生成位置
     float nextObstacleZ =100.0f;
+    // ボス撃破後の敵・障害物の再開管理
+    bool isHazardWaiting = false;
 
+    // ボス撃破時のプレイヤー進行距離
+    float bossDefeatedCourseZ = 0.0f;
 
 
     //Windowsから送られてくるメッセージを処理するためのDx関数
@@ -309,7 +336,19 @@ int WINAPI WinMain(
 
             // 更新後のボス進行状態を取得
             BossPhase currentPhase = bossManager.GetPhase();
+            // ボス撃破によってBattleからNormalに戻った瞬間
+            if (previousPhase == BossPhase::Battle &&
+                currentPhase == BossPhase::Normal)
+            {
+                isHazardWaiting = true;
 
+                // 撃破時のプレイヤー位置を記録
+                bossDefeatedCourseZ = player.GetCourseZ();
+
+                // 敵と障害物を削除
+                enemyManager.Clear();
+                obstacleManager.Reset();
+            }
 
             // NormalからWarningに切り替わった瞬間
             if (previousPhase == BossPhase::Normal &&
@@ -341,10 +380,23 @@ int WINAPI WinMain(
                 courseManager,
                 canMoveForward
             );
+            // ボス撃破後、30m進んだら敵と障害物の生成を再開
+            if (isHazardWaiting &&
+                player.GetCourseZ() >= bossDefeatedCourseZ + 30.0f)
+            {
+                isHazardWaiting = false;
+
+                // 敵の生成位置をリセット
+                enemyManager.ResetSpawnPosition(player.GetCourseZ());
+
+                // 障害物の生成位置をリセット
+                nextObstacleZ = player.GetCourseZ() + 10.0f;
+            }
 
             
             // 通常ラン中だけ敵を自動生成する
-            if (bossManager.GetPhase() == BossPhase::Normal)
+            if (bossManager.GetPhase() == BossPhase::Normal &&
+                !isHazardWaiting)
             {
                 enemyManager.Update(
                     player.GetCourseZ(),
@@ -363,10 +415,11 @@ int WINAPI WinMain(
             obstacleManager.RemovePassedObstacles(player.GetCourseZ());
 
 
-            // 通常ラン中だけ障害物を生成する
-            if (bossManager.GetPhase() == BossPhase::Normal)
+            // 通常ラン中、かつボス撃破後の待機が終了している場合だけ障害物を生成する
+            if (bossManager.GetPhase() == BossPhase::Normal &&
+                !isHazardWaiting)
             {
-                // 次の障害物まで20以内になったら生成する
+                // 次の障害物まで50m以内になったら生成する
                 if (player.GetCourseZ() + 50.0f >= nextObstacleZ)
                 {
                     obstacleManager.SpawnObstacle(
@@ -440,6 +493,8 @@ int WINAPI WinMain(
                         bossManager,
                         courseManager,
                         nextObstacleZ,
+                        isHazardWaiting,
+                        bossDefeatedCourseZ,
                         previousTime
                     );
 
@@ -468,6 +523,8 @@ int WINAPI WinMain(
                     bossManager,
                     courseManager,
                     nextObstacleZ,
+                    isHazardWaiting,
+                    bossDefeatedCourseZ,
                     previousTime
                 );
 
@@ -486,6 +543,12 @@ int WINAPI WinMain(
 
                 // ボスの状態を初期化
                 bossManager.Reset();
+
+                // ボス撃破後の待機状態を初期化
+                isHazardWaiting = false;
+
+                // ボス撃破時の距離を初期化
+                bossDefeatedCourseZ = 0.0f;
 
                 // プレイヤーコントローラーもリセット
                 playerController.Reset();
@@ -1413,6 +1476,8 @@ int WINAPI WinMain(
     //SkyBoxモデル
     MV1DeleteModel(skyboxHandle);
 
+    // 障害物モデルを解放
+    obstacleManager.ReleaseModel();
 
     DxLib_End();
 

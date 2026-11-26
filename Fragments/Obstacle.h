@@ -12,9 +12,9 @@ public:
     float laneOffset = 0.0f;
 
     // 障害物の大きさ
-    float width = 2.0f;
-    float height = 3.0f;
-    float depth = 2.0f;
+    float width = 2.3f;
+    float height = 3.3f;
+    float depth = 2.3f;
 
     // 障害物の中心の高さ
     float centerY = 1.5f;
@@ -30,8 +30,8 @@ public:
     // コース情報からワールド座標を更新
     void UpdatePosition(const CourseManager& courseManager);
 
-    // 描画
-    void Draw();
+    // モデルを使って描画
+    void Draw(int modelHandle);
 };
 
 #endif

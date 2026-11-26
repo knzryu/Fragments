@@ -1,6 +1,37 @@
 #include "ObstacleManager.h"
 #include"DxLib.h"
 
+#include <string>
+
+// áŠQ•¨ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+// áŠQ•¨ƒ‚ƒfƒ‹‚Ì“Ç‚İ‚İ
+bool ObstacleManager::LoadModel()
+{
+    if (modelHandle != -1) return true;
+
+    modelHandle = MV1LoadModel(
+        "Resource/Obstacle/Fragments_Obstacl.mv1"
+    );
+
+    if (modelHandle == -1) return false;
+
+    // ƒ‚ƒfƒ‹‚Ì‘å‚«‚³‚ğ’²®
+    MV1SetScale(modelHandle, VGet(0.06f, 0.06f, 0.06f));
+
+    return true;
+}
+
+
+// áŠQ•¨ƒ‚ƒfƒ‹‚Ì‰ğ•ú
+void ObstacleManager::ReleaseModel()
+{
+    if (modelHandle != -1)
+    {
+        MV1DeleteModel(modelHandle);
+        modelHandle = -1;
+    }
+}
+
 
 // ŠÇ—‚µ‚Ä‚¢‚éáŠQ•¨‚ÌŒÂ”‚ğæ“¾‚·‚é
 int ObstacleManager::GetCount() const
@@ -20,12 +51,12 @@ void ObstacleManager::SpawnObstacle(
     const CourseManager& courseManager)
 {
     // áŠQ•¨‚Ì‰¡•ûŒü‚Ì”z’u”ÍˆÍ
-    const float minOffset = -3.5f;
-    const float maxOffset = 3.5f;
+    const float minOffset = -7.5f;
+    const float maxOffset = 7.5f;
 
     // ƒ‰ƒ“ƒ_ƒ€‚È‰¡•ûŒü‚ÌˆÊ’u‚ğŒˆ’è
     float randomOffset =
-        minOffset + GetRand(700) / 100.0f;
+        minOffset + GetRand(1500) / 100.0f;
 
     // áŠQ•¨‚ğ¶¬
     Obstacle obstacle;
@@ -67,9 +98,15 @@ void ObstacleManager::RemovePassedObstacles(float playerZ)
 // áŠQ•¨‚ğ‚·‚×‚Ä•`‰æ‚·‚é
 void ObstacleManager::DrawAll()
 {
+    // ƒ‚ƒfƒ‹‚ª“Ç‚İ‚Ü‚ê‚Ä‚¢‚È‚¢ê‡‚Í•`‰æ‚µ‚È‚¢
+    if (modelHandle == -1)
+    {
+        return;
+    }
+
     for (int i = 0; i < static_cast<int>(obstacles.size()); i++)
     {
 		// ˆê”Ô–Ú‚ÌáŠQ•¨‚©‚ç‡”Ô‚É•`‰æ‚·‚é
-        obstacles[i].Draw();
+        obstacles[i].Draw(modelHandle);
     }
 }

@@ -7,7 +7,7 @@ class PlayerController
 private:
 
 	//ダッシュの設定
-	static constexpr float DASH_DISTANCE = 5.0f;     // ダッシュ中の移動量（1フレームあたり）
+	static constexpr float DASH_DISTANCE = 6.0f;     // ダッシュ中の移動量（1フレームあたり）
 	static constexpr float DASH_DURATION = 0.3f;  // ダッシュの持続時間（秒）
 	static constexpr float DASH_COOLDOWN = 5.0f;      // ダッシュの経過時間
 

@@ -82,11 +82,20 @@ void EnemyManager::Update(
     // プレイヤーの50m先まで敵を生成する
     while (nextSpawnZ < playerCourseZ + 50.0f)
     {
-        // -1、0、1 のいずれかをランダムに取得
-        int laneIndex = GetRand(2) - 1;
+        // 敵の出現レーンを決定
+        // 左端・中央・右端の3か所
+        const float enemyLanes[] =
+        {
+            -7.0f,
+             0.0f,
+             7.0f
+        };
 
-        // レーン位置を決定
-        float laneOffset = laneIndex * 3.0f;
+        // 0～2のランダムな番号を取得
+        int laneIndex = GetRand(2);
+
+        // 出現位置を決定
+        float laneOffset = enemyLanes[laneIndex];
 
         // 敵を生成
         SpawnEnemy(
@@ -101,6 +110,12 @@ void EnemyManager::Update(
     }
 }
 
+// 敵の生成再開位置を設定
+void EnemyManager::ResetSpawnPosition(float playerCourseZ)
+{
+    // プレイヤーの10m先から生成を再開する
+    nextSpawnZ = playerCourseZ + 10.0f;
+}
 
 // 敵の描画 
 void EnemyManager::DrawAll()
