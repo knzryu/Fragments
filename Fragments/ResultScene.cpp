@@ -1,12 +1,18 @@
-
 #include "DxLib.h"
 #include "ResultScene.h"
 
-//リザルト画面の初期化
-void  ResultScene::Initialize(const ResultData& data)
+// リザルト画面の初期化
+void ResultScene::Initialize(const ResultData& data)
 {
-	//結果データを保存
-	resultData = data;
+    // 結果データを保存
+    resultData = data;
+
+    // フォントを作成
+    fontHandle = CreateFontToHandle(
+        nullptr,    // フォント名
+        48,         // 文字サイズ
+        3           // 太さ
+    );
 }
 
 void ResultScene::Update()
@@ -14,7 +20,7 @@ void ResultScene::Update()
     // 現段階では更新処理なし
 }
 
-//リザルト画面の更新
+// リザルト画面の描画
 void ResultScene::Draw()
 {
     // 背景
@@ -24,17 +30,12 @@ void ResultScene::Draw()
         TRUE
     );
 
-    // タイトル
-    DrawString(
-        810, 150,
-        "MISSION RESULT",
-        GetColor(255, 80, 80)
-    );
-
-    DrawString(
+    // GAME OVER
+    DrawStringToHandle(
         862, 217,
-        "GAME OVER",
-        GetColor(255, 80, 80)
+        "GAME OVER ",
+        GetColor(255, 80, 80),
+        fontHandle
     );
 
     // 結果パネル
@@ -51,29 +52,33 @@ void ResultScene::Draw()
     );
 
     // 敵撃破数
-    DrawString(
+    DrawStringToHandle(
         585, 420,
-        "DEFEATED ENEMIES",
-        GetColor(150, 200, 230)
+        "撃破数",
+        GetColor(150, 200, 230),
+        fontHandle
     );
 
-    DrawFormatString(
+    DrawFormatStringToHandle(
         675, 525,
         GetColor(255, 255, 255),
+        fontHandle,
         "%d",
         resultData.defeatedEnemyCount
     );
 
     // 走行距離
-    DrawString(
+    DrawStringToHandle(
         1125, 420,
-        "DISTANCE",
-        GetColor(150, 200, 230)
+        " 距離",
+        GetColor(150, 200, 230),
+        fontHandle
     );
 
-    DrawFormatString(
+    DrawFormatStringToHandle(
         1185, 525,
         GetColor(255, 255, 255),
+        fontHandle,
         "%.1f M",
         resultData.distance
     );
@@ -95,10 +100,11 @@ void ResultScene::Draw()
         TRUE
     );
 
-    DrawString(
-        675, 862,
-        "RETRY",
-        GetColor(255, 255, 255)
+    DrawStringToHandle(
+        650, 855,
+        " RETRY",
+        GetColor(255, 255, 255),
+        fontHandle
     );
 
     // TITLEボタン
@@ -114,9 +120,20 @@ void ResultScene::Draw()
         TRUE
     );
 
-    DrawString(
-        1147, 862,
+    DrawStringToHandle(
+        1120, 855,
         "TITLE",
-        GetColor(255, 255, 255)
+        GetColor(255, 255, 255),
+        fontHandle
     );
+}
+
+// リザルト画面の終了処理
+void ResultScene::Finalize()
+{
+    if (fontHandle != -1)
+    {
+        DeleteFontToHandle(fontHandle);
+        fontHandle = -1;
+    }
 }

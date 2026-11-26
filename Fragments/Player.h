@@ -21,7 +21,7 @@ private:
     // プレイヤーの能力値の初期値
     static constexpr int INITIAL_ATTACK_POWER = 1;
     //射撃クールタイム
-    static constexpr float INITIAL_SHOT_COOLDOWN = 0.0f;
+    static constexpr float INITIAL_SHOT_COOLDOWN = 4.0f;
     static constexpr float MIN_SHOT_COOLDOWN = 0.0f;
 
 

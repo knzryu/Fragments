@@ -80,7 +80,7 @@ void EnemyManager::Update(
     const CourseManager& courseManager)
 {
     // プレイヤーの50m先まで敵を生成する
-    while (nextSpawnZ < playerCourseZ + 50.0f)
+    while (nextSpawnZ < playerCourseZ + 100.0f)
     {
         // 敵の出現レーンを決定
         // 左端・中央・右端の3か所
@@ -114,7 +114,7 @@ void EnemyManager::Update(
 void EnemyManager::ResetSpawnPosition(float playerCourseZ)
 {
     // プレイヤーの10m先から生成を再開する
-    nextSpawnZ = playerCourseZ + 10.0f;
+    nextSpawnZ = playerCourseZ + 50.0f;
 }
 
 // 敵の描画 

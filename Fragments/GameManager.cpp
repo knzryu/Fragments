@@ -121,21 +121,26 @@ BulletManager& GameManager::GetBulletManager()
 
 // 戦闘処理を実行
 bool GameManager::UpdateBulletsAndCombat(
-    float deltaTime,
+	float deltaTime,
 	const CourseManager& courseManager,
 	BossManager& bossManager)
 {
-	// 1.　すべての弾を更新
+	// 1. すべての弾を更新
 	bulletManager.UpdateAll(deltaTime, courseManager);
 
 	// 2. 弾と敵の当たり判定・ダメージ処理
-	return combatManager.Update(
+	bool isLevelUp = combatManager.Update(
 		enemyManager,
 		bulletManager,
 		playerProgress,
 		bossManager,
 		player
 	);
+
+	// 3. プレイヤーから200m以上前方に進んだ弾を削除
+	bulletManager.RemoveOutOfRangeBullets(player.GetCourseZ());
+
+	return isLevelUp;
 }
 
 //gameManagerにリセット処理もまかせた

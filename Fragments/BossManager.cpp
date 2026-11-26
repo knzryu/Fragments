@@ -20,6 +20,9 @@ void BossManager::Reset()
 
     nextBossDistance = 1000.0f;
 
+    // ボスの出現回数をリセット
+    bossCount = 0;
+
     boss.Reset();
 }
 
@@ -43,6 +46,17 @@ void BossManager::Update(
     {
         if (playerCourseZ >= nextBossDistance)
         {
+            // ボスの出現回数を増やす
+            bossCount++;
+
+            // 出現回数に応じて最大HPを計算
+            int bossHP =
+                FIRST_BOSS_HP +
+                (bossCount - 1) * BOSS_HP_INCREMENT;
+
+            // ボスの最大HPを設定
+            boss.SetMaxHP(bossHP);
+
             // プレイヤーの30m先、中央レーンに出現
             boss.Spawn(
                 playerCourseZ + 30.0f,

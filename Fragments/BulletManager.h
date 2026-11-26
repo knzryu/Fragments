@@ -46,6 +46,9 @@ public:
 
     // 弾を全削除
     void Clear();
+
+    // プレイヤーから一定距離以上離れた弾を削除
+    void RemoveOutOfRangeBullets(float playerCourseZ);
 };
 
 #endif

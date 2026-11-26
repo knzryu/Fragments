@@ -72,6 +72,21 @@ void BulletManager::RemoveInactiveBullets()
     }
 }
 
+// プレイヤーから一定距離以上離れた弾を削除
+void BulletManager::RemoveOutOfRangeBullets(float playerCourseZ)
+{
+    // 後ろから順番に確認
+    for (int i = static_cast<int>(bullets.size()) - 1; i >= 0; i--)
+    {
+        // プレイヤーから2000m以上前方に進んだ場合
+        if (bullets[i].courseZ > playerCourseZ + 200.0f)
+        {
+            // 弾を削除
+            bullets.erase(bullets.begin() + i);
+        }
+    }
+}
+
 // 弾を全削除
 void BulletManager::Clear()
 {

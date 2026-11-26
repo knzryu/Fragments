@@ -390,7 +390,7 @@ int WINAPI WinMain(
                 enemyManager.ResetSpawnPosition(player.GetCourseZ());
 
                 // è·äQï®ÇÃê∂ê¨à íuÇÉäÉZÉbÉg
-                nextObstacleZ = player.GetCourseZ() + 10.0f;
+                nextObstacleZ = player.GetCourseZ() + 100.0f;
             }
 
             
@@ -419,8 +419,8 @@ int WINAPI WinMain(
             if (bossManager.GetPhase() == BossPhase::Normal &&
                 !isHazardWaiting)
             {
-                // éüÇÃè·äQï®Ç‹Ç≈50mà»ì‡Ç…Ç»Ç¡ÇΩÇÁê∂ê¨Ç∑ÇÈ
-                if (player.GetCourseZ() + 50.0f >= nextObstacleZ)
+                // éüÇÃè·äQï®Ç‹Ç≈100mà»ì‡Ç…Ç»Ç¡ÇΩÇÁê∂ê¨Ç∑ÇÈ
+                if (player.GetCourseZ() + 100.0f >= nextObstacleZ)
                 {
                     obstacleManager.SpawnObstacle(
                         nextObstacleZ,
@@ -988,8 +988,7 @@ int WINAPI WinMain(
             gameManager.Draw();
             //è·äQï®Çîzíu
             obstacleManager.DrawAll();
-            //ìGÇï`âÊ
-            enemyManager.DrawAll();
+            
             
 
 
@@ -1378,15 +1377,11 @@ int WINAPI WinMain(
                 // É^ÉCÉgÉã
                 DrawString(
                     800, 320,
-                    "LEVEL UP!",
+                    "              LEVEL UP!",
                     GetColor(100, 220, 255)
                 );
      
-                DrawString(
-                    790, 365,
-                    "CHOOSE AN ABILITY",
-                    GetColor(255, 255, 255)
-                );
+               
                 // ATTACK CARD
                 DrawBox(
                     560, 430, 820, 700,

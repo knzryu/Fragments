@@ -22,8 +22,12 @@ private:
 
 	
     // ボスの初期HP
-    static constexpr int INITIAL_HP = 10;
+    static constexpr int INITIAL_HP = 15;
 
+    // 現在の最大HP
+    int maxHP = INITIAL_HP;
+
+    // 現在のHP
     int hp = INITIAL_HP;
 
 	bool active = false;
@@ -130,6 +134,9 @@ public:
 
     // 最大HPを取得
     int GetMaxHP() const;
+
+    // ボスの最大HPを設定
+    void SetMaxHP(int value);
 
     // 現在の行動状態を取得
     BossAction GetAction() const;

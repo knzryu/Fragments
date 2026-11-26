@@ -329,7 +329,7 @@ void Boss::Spawn(float startCourseZ,float startLaneOffset,const CourseManager& c
 
     currentLane = 1;
 
-    hp = INITIAL_HP;
+    hp = maxHP;
     active = true;
 
     action = BossAction::Idle;
@@ -446,8 +446,8 @@ void Boss::UpdateLane(float deltaTime)
 
 void Boss::Reset()
 {
-    // HPを初期値に戻す
-    hp = INITIAL_HP;
+    // HPを最大HPに戻す
+    hp = maxHP;
 
     // ボスを未出現状態にする
     active = false;
@@ -501,5 +501,17 @@ int Boss::GetHP() const
 // 最大HPを取得
 int Boss::GetMaxHP() const
 {
-    return INITIAL_HP;
+    return maxHP;
+}
+
+// ボスの最大HPを設定
+void Boss::SetMaxHP(int value)
+{
+    if (value <= 0)
+    {
+        return;
+    }
+
+    maxHP = value;
+    hp = maxHP;
 }
