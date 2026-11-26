@@ -5,6 +5,46 @@
 class Player
 {
 private:
+    //------------</初期ステータス/>-----------------
+    // プレイヤーHP
+    static constexpr int INITIAL_HP = 3;
+
+
+    //移動速度   constexprで初期値を定数にする
+    static constexpr float INITIAL_FORWARD_SPEED = 30.0f;
+    //左右
+    static constexpr float INITIAL_SIDE_SPEED = 5.2;
+    //弾スピード
+    static constexpr float INITIAL_BULLET_SPEED = 30.0f;
+    //弾サイズ
+    static constexpr float INITIAL_BULLET_SIZE = 0.15f;
+    // プレイヤーの能力値の初期値
+    static constexpr int INITIAL_ATTACK_POWER = 1;
+    //射撃クールタイム
+    static constexpr float INITIAL_SHOT_COOLDOWN = 0.0f;
+    static constexpr float MIN_SHOT_COOLDOWN = 1.0f;
+
+
+    // ダメージ・無敵時間
+    static constexpr float INVINCIBLE_DURATION = 1.0f;
+
+    // 無敵時間の残り
+    float invincibleTimer = 0.0f;
+
+    // ダメージ演出の経過時間
+    float damageEffectTimer = 0.0f;
+
+    // 点滅の表示状態
+    bool damageBlinkVisible = true;
+
+    
+    // プレイヤーの能力値
+    int hp = INITIAL_HP;
+    int attackPower = INITIAL_ATTACK_POWER;
+    float bulletSpeed = INITIAL_BULLET_SPEED;
+    float bulletSize = INITIAL_BULLET_SIZE;
+    float shotCooldown = INITIAL_SHOT_COOLDOWN;
+
 
     //3Dモデル
     int modelHandle = -1;
@@ -32,30 +72,7 @@ private:
     float sideSpeed = INITIAL_SIDE_SPEED;
 
 
-    //------------</初期ステータス/>-----------------
-
-    //移動速度   constexprで初期値を定数にする
-    static constexpr float INITIAL_FORWARD_SPEED = 30.0f;
-    //左右
-    static constexpr float INITIAL_SIDE_SPEED = 5.0;
-    //弾スピード
-    static constexpr float INITIAL_BULLET_SPEED = 30.0f;
-    //弾サイズ
-    static constexpr float INITIAL_BULLET_SIZE = 0.15f;
-    // プレイヤーの能力値の初期値
-    static constexpr int INITIAL_ATTACK_POWER = 1;
-
-
-    //射撃クールタイム
-    static constexpr float INITIAL_SHOT_COOLDOWN = 0.0f;
-    static constexpr float MIN_SHOT_COOLDOWN = 1.0f;
-
-    // プレイヤーの能力値
-    int attackPower = INITIAL_ATTACK_POWER;
-    float bulletSpeed = INITIAL_BULLET_SPEED;
-    float bulletSize = INITIAL_BULLET_SIZE;
-    float shotCooldown = INITIAL_SHOT_COOLDOWN;
-
+    float damageBlinkTimer = 0.0f;
 
 public:
 
@@ -75,6 +92,21 @@ public:
     // 横方向オフセットの取得・設定
     float GetLaneOffset() const;
     void SetLaneOffset(float newOffset);
+
+    // HP取得
+    int GetHP() const;
+
+    // 最大HP取得
+    int GetMaxHP() const;
+
+    // ダメージを受ける
+    void TakeDamage(int damage);
+
+    // 無敵状態か取得
+    bool IsInvincible() const;
+
+    // ダメージ演出の更新
+    void UpdateDamageEffect(float deltaTime);
 
     //攻撃力の取得・設定
     int GetAttackPower()const;

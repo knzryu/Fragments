@@ -12,13 +12,23 @@ void Player::Initialize()
     sideSpeed = INITIAL_SIDE_SPEED;
 
     // 能力値を初期化
+    hp = INITIAL_HP;
     attackPower = INITIAL_ATTACK_POWER;
     bulletSpeed = INITIAL_BULLET_SPEED;
     bulletSize = INITIAL_BULLET_SIZE;
     shotCooldown = INITIAL_SHOT_COOLDOWN;
 
+
+
     courseZ = 0.0f;
     laneOffset = 0.0f;
+
+    // ダメージ演出を初期化
+    invincibleTimer = 0.0f;
+    damageEffectTimer = 0.0f;
+    damageBlinkVisible = true;
+
+    damageBlinkTimer = 0.0f;
 
     // 3Dモデルを読み込む
     modelHandle = MV1LoadModel("Models/PlayerModel.mv1");
@@ -34,27 +44,37 @@ void Player::Initialize()
     // モデルが持っているアニメーション数を確認
     int animNum = MV1GetAnimNum(modelHandle);
 
+
+    // 初期値を設定
+    attachIndex = -1;
+    animTotalTime = 0.0f;
+    animTime = 0.0f;
+
     if (animNum > 0)
     {
         // 先頭のアニメーションをモデルに取り付ける
         attachIndex = MV1AttachAnim(modelHandle, 0, -1, FALSE);
+
+        if (attachIndex != -1)
+        {
+            // アニメーションの総再生時間を取得
+            animTotalTime = MV1GetAttachAnimTotalTime(
+                modelHandle,
+                attachIndex
+            );
+
+            // 最初の姿勢をモデルに反映
+            MV1SetAttachAnimTime(
+                modelHandle,
+                attachIndex,
+                animTime
+            );
+        }
     }
     else
     {
         printfDx("モデルにアニメーションがありません");
     }
-
-    // アニメーションの総再生時間を取得
-    animTotalTime = MV1GetAttachAnimTotalTime(
-        modelHandle,
-        attachIndex
-    );
-
-    // 再生時間を初期化
-    animTime = 0.0f;
-
-    // 最初の姿勢をモデルに反映
-    MV1SetAttachAnimTime(modelHandle, attachIndex, animTime);
 }
 
 void Player::Reset()
@@ -69,12 +89,14 @@ void Player::Reset()
     // 移動速度を初期化
     forwardSpeed = INITIAL_FORWARD_SPEED;
     sideSpeed = INITIAL_SIDE_SPEED;
-    bulletSize = INITIAL_BULLET_SIZE;
-    shotCooldown = INITIAL_SHOT_COOLDOWN;
+    
 
     // 能力値を初期化
+    hp = INITIAL_HP;
     attackPower = INITIAL_ATTACK_POWER;
     bulletSpeed = INITIAL_BULLET_SPEED;
+    bulletSize = INITIAL_BULLET_SIZE;
+    shotCooldown = INITIAL_SHOT_COOLDOWN;
 
     // アニメーションを最初から再生
     animTime = 0.0f;
@@ -87,6 +109,12 @@ void Player::Reset()
             animTime
         );
     }
+
+    // ダメージ演出・無敵時間を初期化
+    invincibleTimer = 0.0f;
+    damageEffectTimer = 0.0f;
+    damageBlinkTimer = 0.0f;
+    damageBlinkVisible = true;
 }
 
 
@@ -111,8 +139,11 @@ void Player::Draw()
         // プレイヤーの座標にモデルを配置
         MV1SetPosition(modelHandle, VGet(x, 0.0f, z));
 
-        // 3Dモデルを描画
-        MV1DrawModel(modelHandle);
+        // ダメージ点滅中で、表示タイミングの場合だけ描画
+        if (damageBlinkVisible)
+        {
+            MV1DrawModel(modelHandle);
+        }
     }
 }
 
@@ -205,8 +236,17 @@ void Player::UpdateCoursePosition(
     z = center.z + right.z * laneOffset;
 }
 
+// HPを取得
+int Player::GetHP() const
+{
+    return hp;
+}
 
-
+// 最大HPを取得
+int Player::GetMaxHP() const
+{
+    return INITIAL_HP;
+}
 
 // 攻撃力の取得
 int Player::GetAttackPower() const
@@ -302,4 +342,77 @@ void Player::UpdateAnimation(float deltaTime)
         attachIndex,
         animTime
     );
+}
+
+// ダメージを受ける
+void Player::TakeDamage(int damage)
+{
+    // 無敵中、または不正なダメージなら受け付けない
+    if (IsInvincible() || damage <= 0 || hp <= 0)
+    {
+        return;
+    }
+
+    // HPを減らす
+    hp -= damage;
+
+    // HPが0未満にならないようにする
+    if (hp < 0)
+    {
+        hp = 0;
+    }
+
+    // 無敵時間を開始
+    invincibleTimer = INVINCIBLE_DURATION;
+
+    // 点滅演出を開始
+    damageEffectTimer = INVINCIBLE_DURATION;
+    damageBlinkTimer = 0.0f;
+    damageBlinkVisible = true;
+}
+
+// 無敵状態か取得
+bool Player::IsInvincible() const
+{
+    return invincibleTimer > 0.0f;
+}
+
+// ダメージ演出の更新
+void Player::UpdateDamageEffect(float deltaTime)
+{
+    // 無敵時間を更新
+    if (invincibleTimer > 0.0f)
+    {
+        invincibleTimer -= deltaTime;
+
+        if (invincibleTimer < 0.0f)
+        {
+            invincibleTimer = 0.0f;
+        }
+    }
+
+    // ダメージ演出の時間を更新
+    if (damageEffectTimer > 0.0f)
+    {
+        damageEffectTimer -= deltaTime;
+
+        // 0.1秒ごとに表示状態を切り替える
+        constexpr float BLINK_INTERVAL = 0.1f;
+
+        damageBlinkTimer += deltaTime;
+
+        while (damageBlinkTimer >= BLINK_INTERVAL)
+        {
+            damageBlinkTimer -= BLINK_INTERVAL;
+            damageBlinkVisible = !damageBlinkVisible;
+        }
+
+        // 演出終了
+        if (damageEffectTimer <= 0.0f)
+        {
+            damageEffectTimer = 0.0f;
+            damageBlinkTimer = 0.0f;
+            damageBlinkVisible = true;
+        }
+    }
 }

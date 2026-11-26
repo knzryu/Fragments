@@ -1,5 +1,4 @@
-#ifndef PLAYER_CONTROLLER_H
-#define PLAYER_CONTROLLER_H
+#pragma once
 
 #include "Player.h"
 
@@ -8,14 +7,29 @@ class PlayerController
 private:
 
 	//ダッシュの設定
-	float dashSpeed = 20.0f;     // ダッシュ中の移動量（1フレームあたり）
-	float dashDuration = 0.4f;   // ダッシュの持続時間（秒）
-	float dashTimer = 0.0f;      // ダッシュの経過時間
+	static constexpr float DASH_DISTANCE = 5.0f;     // ダッシュ中の移動量（1フレームあたり）
+	static constexpr float DASH_DURATION = 0.3f;  // ダッシュの持続時間（秒）
+	static constexpr float DASH_COOLDOWN = 5.0f;      // ダッシュの経過時間
 
 	//ダッシュの状態
 	bool isDashing = false;
-	bool dashUsed = false;
+	float dashTimer = 0.0f;
+	float dashCooldownTimer = 0.0f;
+
+	// ダッシュ方向（-1：左、1：右）
 	int dashDirection = 0;
+
+	// ダッシュ開始時の移動量
+	float dashMovedDistance = 0.0f;
+
+	// 最後に押した左右キーの方向
+	int lastMoveDirection = 0;
+
+	// 前フレームのキー入力状態
+	bool previousAKey = false;
+	bool previousDKey = false;
+	bool previousSpaceKey = false;
+
 
 	//移動範囲
 	float roadLimit = 8.0f;
@@ -29,4 +43,3 @@ public:
 	void Reset();
 };
 
-#endif

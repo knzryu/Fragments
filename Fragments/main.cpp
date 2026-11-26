@@ -356,6 +356,9 @@ int WINAPI WinMain(
             //毎フレーム、アニメーションの時間を進める
             player.UpdateAnimation(deltaTime);
 
+            // ダメージ演出・無敵時間を更新
+            player.UpdateDamageEffect(deltaTime);
+
             // プレイヤーの後方にある障害物を削除する
             obstacleManager.RemovePassedObstacles(player.GetCourseZ());
 
@@ -610,7 +613,55 @@ int WINAPI WinMain(
                     break;
                 }
             }
+            // 敵との衝突判定
+            if (gameManager.GetGameState() == GameState::Playing)
+            {
+                // すべての敵をチェック
+                for (int i = 0; i < enemyManager.GetCount(); i++)
+                {
+                    // i番目の敵を取得
+                    Enemy& enemy = enemyManager.GetEnemy(i);
 
+                    // 倒されている敵は無視
+                    if (enemy.IsDead())
+                    {
+                        continue;
+                    }
+
+                    // 敵の当たり判定範囲
+                    float enemyMinX = enemy.x - 0.5f;
+                    float enemyMaxX = enemy.x + 0.5f;
+
+                    float enemyMinY = enemy.y + 1.0f;
+                    float enemyMaxY = enemy.y + 3.0f;
+
+                    float enemyMinZ = enemy.z - 0.5f;
+                    float enemyMaxZ = enemy.z + 0.5f;
+
+                    // プレイヤーと敵の衝突判定
+                    bool isColliding = IsCollidingAABB(
+                        playerMinX, playerMaxX,
+                        playerMinY, playerMaxY,
+                        playerMinZ, playerMaxZ,
+                        enemyMinX, enemyMaxX,
+                        enemyMinY, enemyMaxY,
+                        enemyMinZ, enemyMaxZ
+                    );
+
+                    if (isColliding)
+                    {
+                        // プレイヤーに1ダメージ
+                        player.TakeDamage(1);
+
+                        // HPが0になったらゲームオーバー
+                        if (player.GetHP() <= 0)
+                        {
+                            gameManager.SetGameState(GameState::GameOver);
+                            break;
+                        }
+                    }
+                }
+            }
             // ボスのレーザーとの衝突判定
             if (gameManager.GetGameState() == GameState::Playing)
             {
@@ -876,10 +927,7 @@ int WINAPI WinMain(
             obstacleManager.DrawAll();
             //敵を描画
             enemyManager.DrawAll();
-            //ボスの描画
-            bossManager.Draw();
-            // 弾描画
-            bulletManager.DrawAll();
+            
 
 
             // Playing中の射撃処理
@@ -1111,7 +1159,11 @@ int WINAPI WinMain(
                 DrawLine3D(rightNearPos, rightFarPos, GetColor(0, 255, 255));
             }
 
-            
+            //道路描画の後に
+            //ボスの描画
+            bossManager.Draw();
+            // 弾描画
+            bulletManager.DrawAll();
 
 
             //-----------------------------------------
@@ -1147,6 +1199,97 @@ int WINAPI WinMain(
                 "EXP: %d / %d",
                 progress.GetExperience(),
                 progress.GetNextLevelExp()
+            );
+
+            // 現在HPと最大HPを取得
+            int currentHP = player.GetHP();
+            int maxHP = player.GetMaxHP();
+
+            // HPの割合を計算
+            float hpRate = 0.0f;
+
+            if (maxHP > 0)
+            {
+                hpRate = static_cast<float>(currentHP) / maxHP;
+            }
+
+            // HP割合を0～1に制限
+            if (hpRate < 0.0f)
+            {
+                hpRate = 0.0f;
+            }
+            else if (hpRate > 1.0f)
+            {
+                hpRate = 1.0f;
+            }
+
+            // HPバーの位置とサイズ
+            const int barX = 20;
+            const int barY = 145;
+            const int barWidth = 200;
+            const int barHeight = 18;
+
+            // 現在HPに応じたバーの長さ
+            int currentWidth =
+                static_cast<int>(barWidth * hpRate);
+
+            // HPに応じて色を変更
+            int hpColor;
+
+            if (hpRate > 0.6f)
+            {
+                hpColor = GetColor(40, 220, 100);
+            }
+            else if (hpRate > 0.3f)
+            {
+                hpColor = GetColor(255, 200, 40);
+            }
+            else
+            {
+                hpColor = GetColor(230, 50, 50);
+            }
+
+            // HP表示
+            DrawFormatString(
+                barX,
+                barY - 22,
+                GetColor(255, 255, 255),
+                "HP: %d / %d",
+                currentHP,
+                maxHP
+            );
+
+            // HPバーの背景
+            DrawBox(
+                barX,
+                barY,
+                barX + barWidth,
+                barY + barHeight,
+                GetColor(40, 40, 40),
+                TRUE
+            );
+
+            // 現在HPのバー
+            if (currentWidth > 0)
+            {
+                DrawBox(
+                    barX,
+                    barY,
+                    barX + currentWidth,
+                    barY + barHeight,
+                    hpColor,
+                    TRUE
+                );
+            }
+
+            // HPバーの枠線
+            DrawBox(
+                barX,
+                barY,
+                barX + barWidth,
+                barY + barHeight,
+                GetColor(255, 255, 255),
+                FALSE
             );
 
             
