@@ -150,6 +150,12 @@ int BossManager::GetBossHP() const
     return boss.GetHP();
 }
 
+// ボスの最大HPを取得する
+int BossManager::GetBossMaxHP() const
+{
+    return boss.GetMaxHP();
+}
+
 // 現在の進行状況を取得
 BossPhase BossManager::GetPhase() const
 {

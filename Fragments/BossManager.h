@@ -76,6 +76,9 @@ public:
 	// ボスのHPを取得する
 	int GetBossHP() const;
 
+	// ボスの最大HPを取得する
+	int GetBossMaxHP() const;
+
 	// 現在の進行状況を取得
 	BossPhase GetPhase() const;
 

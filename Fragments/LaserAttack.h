@@ -2,6 +2,9 @@
 
 #include "DxLib.h"
 #include "CourseManager.h"
+#include <cmath>
+
+
 
 namespace
 {
@@ -20,13 +23,38 @@ namespace
         // 正規化（長さを1にする）
         direction = VNorm(direction);
 
-        // カメラの上方向
-        VECTOR up = VGet(0.0f, 1.0f, 0.0f);
+        
+        // カメラの位置を取得
+        VECTOR cameraPosition = GetCameraPosition();
 
-        // レーザーの横方向を計算
-        VECTOR right = VCross(direction, up);
+        // レーザーの中心位置
+        VECTOR center = VScale(
+            VAdd(start, end),
+            0.5f
+        );
+
+        // レーザーの中心からカメラに向かう方向
+        VECTOR toCamera = VSub(cameraPosition, center);
+        toCamera = VNorm(toCamera);
+
+        // カメラ方向を基準に横方向を計算
+        VECTOR right = VCross(direction, toCamera);
+
+        // カメラとレーザーがほぼ一直線の場合の対策
+        if (VSize(right) < 0.001f)
+        {
+            VECTOR referenceUp = VGet(0.0f, 1.0f, 0.0f);
+
+            if (fabsf(direction.y) > 0.99f)
+            {
+                referenceUp = VGet(1.0f, 0.0f, 0.0f);
+            }
+
+            right = VCross(direction, referenceUp);
+        }
+
+        // 横方向を正規化
         right = VNorm(right);
-
 
         // 横方向に幅を持たせる
         VECTOR offset = VScale(right, width);

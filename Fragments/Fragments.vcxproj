@@ -153,6 +153,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerController.cpp" />
     <ClCompile Include="PlayerProgress.cpp" />
+    <ClCompile Include="RankingManager.cpp" />
     <ClCompile Include="ResultScene.cpp" />
     <ClCompile Include="Spline.cpp" />
   </ItemGroup>
@@ -175,6 +176,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerController.h" />
     <ClInclude Include="PlayerProgress.h" />
+    <ClInclude Include="RankingManager.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="ResultData.h" />
     <ClInclude Include="ResultScene.h" />

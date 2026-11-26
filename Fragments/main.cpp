@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "ResultScene.h"
 #include "BossManager.h"
+#include "RankingManager.h"
 
 // ゲームの状態をリセットする関数
 void ResetGame(
@@ -39,7 +40,7 @@ void ResetGame(
     playerController.Reset();
 
     // 次の障害物の生成位置を初期化
-    nextObstacleZ = 50.0f;
+    nextObstacleZ = 100.0f;
 
 
     // 前回時刻を更新して、時間差をリセット
@@ -60,7 +61,7 @@ int WINAPI WinMain(
 {
     //window表示
     ChangeWindowMode(TRUE);
-    SetGraphMode(1280, 720, 32);
+    SetGraphMode(1920, 1080, 32);
 
     //Dxlib初期化
     if (DxLib_Init() == -1)
@@ -197,9 +198,15 @@ int WINAPI WinMain(
 
     //プレイヤーの移動
     GameManager gameManager;
+
     gameManager.Initialize(courseManager);
 
-    
+    RankingManager rankingManager;
+
+    rankingManager.Initialize();
+
+    // ランキングリセットの確認状態
+    bool rankingResetConfirm = false;
 
     //プレイヤークラスを参照
     Player& player = gameManager.GetPlayer();
@@ -260,9 +267,10 @@ int WINAPI WinMain(
 
     int previousTime = GetNowCount();
 
- 
-    float obstacleSpacing = 25.0f;
-    float nextObstacleZ = 50.0f;
+    //障害物の生成感覚
+    float obstacleSpacing = 50.0f;
+    //障害物初期生成位置
+    float nextObstacleZ =100.0f;
 
 
 
@@ -356,7 +364,7 @@ int WINAPI WinMain(
             if (bossManager.GetPhase() == BossPhase::Normal)
             {
                 // 次の障害物まで20以内になったら生成する
-                if (player.GetCourseZ() + 20.0f >= nextObstacleZ)
+                if (player.GetCourseZ() + 50.0f >= nextObstacleZ)
                 {
                     obstacleManager.SpawnObstacle(
                         nextObstacleZ,
@@ -384,30 +392,56 @@ int WINAPI WinMain(
 
         bool clickConsumed = false;
 
-        //タイトル画面のSTARTボタン
-        if (gameManager.GetGameState() == GameState::Title)
+        // タイトル画面のクリック処理
+        if (gameManager.GetGameState() == GameState::Title && leftClickDown)
         {
             int mouseX, mouseY;
             GetMousePoint(&mouseX, &mouseY);
 
-            // STARTボタンの範囲
-            bool isMouseOverButton =
-                mouseX >= 490 && mouseX <= 790 &&
-                mouseY >= 500 && mouseY <= 600;
-
-            //ボタン内で左クリックした瞬間
-            if (isMouseOverButton && leftClickDown)
+            // リセット確認中
+            if (rankingResetConfirm)
             {
-                ResetGame(
-                    gameManager,
-                    playerController,
-                    bossManager,
-                    courseManager,
-                    nextObstacleZ,
-                    previousTime
-                );
+                // YESボタン
+                if (mouseX >= 1570 && mouseX <= 1680 &&
+                    mouseY >= 970 && mouseY <= 1020)
+                {
+                    rankingManager.Clear();
+                    rankingResetConfirm = false;
+                }
+                // NOボタン
+                else if (mouseX >= 1710 && mouseX <= 1820 &&
+                    mouseY >= 970 && mouseY <= 1020)
+                {
+                    rankingResetConfirm = false;
+                }
 
+                // 確認中のクリックをSTARTや射撃に使わせない
                 clickConsumed = true;
+            }
+            else
+            {
+                // RESET RANKINGボタン
+                if (mouseX >= 1660 && mouseX <= 1850 &&
+                    mouseY >= 970 && mouseY <= 1020)
+                {
+                    rankingResetConfirm = true;
+                    clickConsumed = true;
+                }
+                // STARTボタン
+                else if (mouseX >= 810 && mouseX <= 1110 &&
+                    mouseY >= 775 && mouseY <= 875)
+                {
+                    ResetGame(
+                        gameManager,
+                        playerController,
+                        bossManager,
+                        courseManager,
+                        nextObstacleZ,
+                        previousTime
+                    );
+
+                    clickConsumed = true;
+                }
             }
         }
 
@@ -418,8 +452,8 @@ int WINAPI WinMain(
             GetMousePoint(&mouseX, &mouseY);
 
             // RETRYボタン
-            if (mouseX >= 700 && mouseX <= 950 &&
-                mouseY >= 900 && mouseY <= 980)
+            if (mouseX >= 600 && mouseX <= 855 &&
+                mouseY >= 825 && mouseY <= 930)
             {
                 // コースを初期状態に戻す
                 courseManager.Initialize();
@@ -438,8 +472,8 @@ int WINAPI WinMain(
             }
 
             // TITLEボタン
-            else if (mouseX >= 970 && mouseX <= 1220 &&
-                mouseY >= 900 && mouseY <= 980)
+            else if (mouseX >= 1065 && mouseX <= 1320 &&
+                mouseY >= 825 && mouseY <= 930)
             {
                 // コースを初期状態に戻す
                 courseManager.Initialize();
@@ -476,20 +510,20 @@ int WINAPI WinMain(
             GetMousePoint(&mouseX, &mouseY);
 
             // 攻撃力カUP
-            if (mouseX >= 300 && mouseX <= 500 &&
-                mouseY >= 280 && mouseY <= 480)
+            if (mouseX >= 560 && mouseX <= 820 &&
+                mouseY >= 430 && mouseY <= 700)
             {
                 abilityChoice = 1;
             }
             // 弾サイズUP
-            else if (mouseX >= 540 && mouseX <= 740 &&
-                mouseY >= 280 && mouseY <= 480)
+            else if (mouseX >= 840 && mouseX <= 1100 &&
+                mouseY >= 430 && mouseY <= 700)
             {
                 abilityChoice = 2;
             }
             // クールタイム短縮
-            else if (mouseX >= 780 && mouseX <= 980 &&
-                mouseY >= 280 && mouseY <= 480)
+            else if (mouseX >= 1120 && mouseX <= 1380 &&
+                mouseY >= 430 && mouseY <= 700)
             {
                 abilityChoice = 3;
             }
@@ -506,7 +540,7 @@ int WINAPI WinMain(
                 else if (abilityChoice == 2)
                 {
                     player.SetBulletSize(
-                        player.GetBulletSize() + 0.1f
+                        player.GetBulletSize() + 0.3f
                     );
                 }
                 else if (abilityChoice == 3)
@@ -515,17 +549,14 @@ int WINAPI WinMain(
                         player.GetShotCooldown() - 0.5f
                     );
                 }
+                abilityChoice = -1;
 
+                //能力選択画面終了
+                gameManager.SetGameState(GameState::Playing);
+
+                //選択クリックを射撃に適用させない
+                clickConsumed = true;
             }
-
-            abilityChoice = -1;
-
-            //能力選択画面終了
-            gameManager.SetGameState(GameState::Playing);
-
-            //選択クリックを射撃に適用させない
-            clickConsumed = true;
-           
         }
 
         //これでボタンを押しっぱなしにしている間、何度も能力を選んでしまうことを防ぐ
@@ -598,10 +629,16 @@ int WINAPI WinMain(
         // GameOverからResultへ遷移
         if (gameManager.GetGameState() == GameState::GameOver)
         {
-            // 保存された結果データをリザルト画面に渡す
-            resultScene.Initialize(gameManager.GetResultData());
+            // リザルトデータを取得
+            const ResultData& result = gameManager.GetResultData();
 
-            // ゲームステートを変更
+            // ランキングに登録
+            rankingManager.AddRecord(result);
+
+            // リザルト画面を初期化
+            resultScene.Initialize(result);
+
+            // リザルト画面へ移行
             gameManager.SetGameState(GameState::Result);
         }
        
@@ -614,16 +651,17 @@ int WINAPI WinMain(
             
             // 背景画像
             DrawExtendGraph(
-                0, 0,1280, 720,
+                0, 0,1920, 1080,
                 titleBackgroundHandle,
                 TRUE
             );
 
             //STARTボタンの範囲
-            const int buttonLeft = 490;
-            const int buttonTop = 500;
-            const int buttonRight = 790;
-            const int buttonBottom = 600;
+            const int buttonLeft = 810;
+            const int buttonTop = 775;
+            const int buttonRight = 1110;
+            const int buttonBottom = 875;
+
 
    
             // マウス位置
@@ -640,7 +678,7 @@ int WINAPI WinMain(
                 ? GetColor(40, 150, 220)
                 : GetColor(20, 80, 150);
 
-            // STARTボタン
+            // STARTボタン描画
             DrawBox(
                 buttonLeft, buttonTop,
                 buttonRight, buttonBottom,
@@ -648,13 +686,160 @@ int WINAPI WinMain(
                 TRUE
             );
 
-            DrawString(
-                925, 740,
+            // START文字
+            DrawExtendString(
+                925, 815,
+                1.1f, 1.1f,
                 " START",
                 GetColor(255, 255, 255)
             );
-        }
 
+            // =====================================
+            // RANKING
+            // =====================================
+
+            // ランキングパネル
+            DrawBox(
+                1370, 620, 1890, 1050,
+                GetColor(15, 25, 45),
+                TRUE
+            );
+
+            DrawBox(
+                1370, 620, 1890, 1050,
+                GetColor(80, 160, 200),
+                FALSE
+            );
+
+            // ランキングタイトル
+            DrawString(
+                1540, 645,
+                "  TOP 5 RANKING",
+                GetColor(100, 220, 255)
+            );
+
+            // 列の見出し
+            DrawString(1395, 700, "RANK", GetColor(150, 200, 230));
+            DrawString(1470, 700, "ENEMY", GetColor(150, 200, 230));
+            DrawString(1555, 700, "DISTANCE", GetColor(150, 200, 230));
+            DrawString(1770, 700, "SCORE", GetColor(150, 200, 230));
+
+            // ランキングデータを取得
+            const std::vector<RankingRecord>& rankingRecords =
+                rankingManager.GetRecords();
+
+            // ランキングを表示
+            for (int i = 0; i < static_cast<int>(rankingRecords.size()); i++)
+            {
+                const RankingRecord& record = rankingRecords[i];
+
+                int drawY = 750 + i * 42;
+
+                // 順位
+                DrawFormatString(
+                    1420, drawY,
+                    GetColor(255, 220, 100),
+                    "%d", i + 1
+                );
+
+                // 敵撃破数
+                DrawFormatString(
+                    1490, drawY,
+                    GetColor(255, 255, 255),
+                    "%d", record.defeatedEnemyCount
+                );
+
+                // 走行距離
+                DrawFormatString(
+                    1580, drawY,
+                    GetColor(255, 255, 255),
+                    "%.1f M", record.distance
+                );
+
+                // スコア
+                DrawFormatString(
+                    1780, drawY,
+                    GetColor(100, 255, 180),
+                    "%d", record.score
+                );
+            }
+               
+            if (rankingResetConfirm)
+            {
+                // 確認メッセージ
+                DrawString(
+                    1410, 925,
+                    "CLEAR ALL RANKING?",
+                    GetColor(255, 100, 100)
+                );
+
+                // YESボタンのホバー判定
+                bool yesHover =
+                    mouseX >= 1570 && mouseX <= 1680 &&
+                    mouseY >= 970 && mouseY <= 1020;
+
+                DrawBox(
+                    1570, 970, 1680, 1020,
+                    yesHover
+                    ? GetColor(220, 60, 60)
+                    : GetColor(150, 40, 40),
+                    TRUE
+                );
+
+                DrawString(
+                    1605, 986,
+                    " YES",
+                    GetColor(255, 255, 255)
+                );
+
+                // NOボタンのホバー判定
+                bool noHover =
+                    mouseX >= 1710 && mouseX <= 1820 &&
+                    mouseY >= 970 && mouseY <= 1020;
+
+                DrawBox(
+                    1710, 970, 1820, 1020,
+                    noHover
+                    ? GetColor(70, 120, 180)
+                    : GetColor(40, 70, 110),
+                    TRUE
+                );
+
+                DrawString(
+                    1750, 986,
+                    "NO ",
+                    GetColor(255, 255, 255)
+                );
+            }
+            else
+            {
+                // リセットボタンのマウス位置
+                int mouseX, mouseY;
+                GetMousePoint(&mouseX, &mouseY);
+
+                // リセットボタンのホバー判定
+                bool resetHover =
+                    mouseX >= 1660 && mouseX <= 1850 &&
+                    mouseY >= 970 && mouseY <= 1020;
+
+
+                DrawBox(
+                    1660, 970, 1850, 1020,
+                    resetHover
+                    ? GetColor(180, 60, 60)
+                    : GetColor(100, 35, 45),
+                    TRUE
+                );
+
+                DrawString(
+                    1680, 986,
+                    "  RESET BUTTON",
+                    GetColor(255, 255, 255)
+                );
+            }
+                   
+            
+        }
         else if (gameManager.GetGameState() == GameState::Result)
         {
             // リザルト画面描画
@@ -685,7 +870,17 @@ int WINAPI WinMain(
 
 
             //これでMain.cppは前進処理の詳細を知らなくても、GameManagerに更新を依頼できる。
+            //3Dオブジェクト
             gameManager.Draw();
+            //障害物を配置
+            obstacleManager.DrawAll();
+            //敵を描画
+            enemyManager.DrawAll();
+            //ボスの描画
+            bossManager.Draw();
+            // 弾描画
+            bulletManager.DrawAll();
+
 
             // Playing中の射撃処理
             if (gameManager.GetGameState() == GameState::Playing)
@@ -723,86 +918,92 @@ int WINAPI WinMain(
             const std::vector<CoursePoint>& points =
                 courseManager.GetControlPoints();
 
-            /*/ 制御点のX座標を確認するデバッグ表示
-            for (int i = 0; i < (int)points.size() && i < 12; i++)
-            {
-                DrawFormatString(
-                    20,
-                    200 + i * 20,
-                    GetColor(255, 255, 0),
-                    "Point %d : X = %.3f Z = %.1f",
-                    i,
-                    points[i].x,
-                    points[i].z
-                );
-            }
-            /*/
-            // すべてのスプライン区間を描画
-            for (int i = 0; i < (int)points.size() - 3; i++)
-            {
-                for (int j = 0; j < 100; j++)
-                {
-                    float t0 = j / 100.0f;
-                    float t1 = (j + 1) / 100.0f;
-
-                    CoursePoint a = Spline::CatmullRom(
-                        points[i],
-                        points[i + 1],
-                        points[i + 2],
-                        points[i + 3],
-                        t0
-                    );
-
-                    CoursePoint b = Spline::CatmullRom(
-                        points[i],
-                        points[i + 1],
-                        points[i + 2],
-                        points[i + 3],
-                        t1
-                    );
-
-                    DrawLine3D(
-                        VGet(a.x, 0.1f, a.z),
-                        VGet(b.x, 0.1f, b.z),
-                        GetColor(0, 255, 255)
-                    );
-                }
-            }
-
-            //デバック
-            // 各敵の座標とHPを確認
-            /*/for (int i = 0; i < enemyManager.GetCount(); i++)
-            {
-                Enemy& enemy = enemyManager.GetEnemy(i);
-
-                DrawFormatString(
-                    20, 120 + i * 20,
-                    GetColor(255, 255, 0),
-                    "Enemy %d: CourseZ=%.2f Offset=%.2f X=%.2f Z=%.2f",
-                    i,
-                    enemy.courseZ,
-                    enemy.laneOffset,
-                    enemy.x,
-                    enemy.z
-                );
-            }/*/
-
-            //障害物を配置
-            obstacleManager.DrawAll();
-
-            //敵を描画
-            enemyManager.DrawAll();
-
-            
-
-            // ボス戦中のみHPを表示
+            // ボスHPバー
             if (bossManager.IsBossActive())
             {
+                // 現在HPと最大HPを取得
+                int currentHP = bossManager.GetBossHP();
+                int maxHP = bossManager.GetBossMaxHP();
+
+                // HPの割合を計算
+                float hpRate = 0.0f;
+
+                if (maxHP > 0)
+                {
+                    hpRate =
+                        static_cast<float>(currentHP) / maxHP;
+                }
+
+                // HP割合を0～1の範囲に制限
+                if (hpRate < 0.0f)
+                {
+                    hpRate = 0.0f;
+                }
+                else if (hpRate > 1.0f)
+                {
+                    hpRate = 1.0f;
+                }
+
+                // HPバーの位置とサイズ
+                const int barX = 660;
+                const int barY = 75;
+                const int barWidth = 600;
+                const int barHeight = 26;
+
+
+                // 現在のHPに応じたバーの長さ
+                int currentWidth =
+                    static_cast<int>(barWidth * hpRate);
+
+                // ボス名
                 DrawFormatString(
-                    20, 200,
-                    GetColor(255, 0, 0),
-                    "BOSS HP: %d",
-                    bossManager.GetBossHP()
+                    barX,
+                    barY - 25,
+                    GetColor(255, 255, 255),
+                    "TITAN-01"
+                );
+
+                // HPバーの背景
+                DrawBox(
+                    barX,
+                    barY,
+                    barX + barWidth,
+                    barY + barHeight,
+                    GetColor(40, 40, 40),
+                    TRUE
+                );
+
+                // 現在HPのバー
+                if (currentWidth > 0)
+                {
+                    DrawBox(
+                        barX,
+                        barY,
+                        barX + currentWidth,
+                        barY + barHeight,
+                        GetColor(220, 35, 45),
+                        TRUE
+                    );
+                }
+
+                // HPバーの枠線
+                DrawBox(
+                    barX,
+                    barY,
+                    barX + barWidth,
+                    barY + barHeight,
+                    GetColor(255, 255, 255),
+                    FALSE
+                );
+
+                // HP数値
+                DrawFormatString(
+                    barX + barWidth + 15,
+                    barY,
+                    GetColor(255, 255, 255),
+                    "%d / %d",
+                    currentHP,
+                    maxHP
                 );
             }
 
@@ -906,12 +1107,11 @@ int WINAPI WinMain(
                 );
 
                 //道路の左右にネオンラインを描画
-                //DrawLine3D(leftNear, leftFar, GetColor(0, 255, 255));
-                //DrawLine3D(rightNearPos, rightFarPos, GetColor(0, 255, 255));
+                DrawLine3D(leftNear, leftFar, GetColor(0, 255, 255));
+                DrawLine3D(rightNearPos, rightFarPos, GetColor(0, 255, 255));
             }
 
-            //ボスの描画
-            bossManager.Draw();
+            
 
 
             //-----------------------------------------
@@ -927,7 +1127,7 @@ int WINAPI WinMain(
             DrawFormatString(
                 220, 20,
                 GetColor(255, 255, 255),
-                "DISTANCE: %.0f m",
+                " %.0f M",
                 player.GetCourseZ()
             );
 
@@ -949,55 +1149,110 @@ int WINAPI WinMain(
                 progress.GetNextLevelExp()
             );
 
+            
+
             if (gameManager.GetGameState() == GameState::AbilitySelect)
             {
-                // 暗い背景
+                
+
+                // 選択画面のパネル
                 DrawBox(
-                    250, 180, 1030, 530,
-                    GetColor(20, 20, 40), TRUE
+                    480, 250, 1440, 820,
+                    GetColor(20, 25, 45),
+                    TRUE
                 );
 
-                DrawFormatString(
-                    440, 215,
-                    GetColor(255, 255, 255),
-                    "LEVEL UP! Choose an ability"
-                );
-                // 攻撃力カード
+                // パネルの枠線
                 DrawBox(
-                    300, 280, 500, 480,
-                    GetColor(100, 45, 55), TRUE
-                );
-                DrawFormatString(
-                    330, 330,
-                    GetColor(255, 180, 180),
-                    "ATTACK +1"
+                    480, 250, 1440, 820,
+                    GetColor(80, 160, 200),
+                    FALSE
                 );
 
-                // 弾サイズ
-                DrawBox(
-                    540, 280, 740, 480,
-                    GetColor(35, 85, 60), TRUE
+                // タイトル
+                DrawString(
+                    800, 320,
+                    "LEVEL UP!",
+                    GetColor(100, 220, 255)
                 );
-                DrawFormatString(
-                    565, 330,
-                    GetColor(160, 255, 190),
-                    "BULLET SIZE +"
+     
+                DrawString(
+                    790, 365,
+                    "CHOOSE AN ABILITY",
+                    GetColor(255, 255, 255)
+                );
+                // ATTACK CARD
+                DrawBox(
+                    560, 430, 820, 700,
+                    GetColor(100, 45, 55),
+                    TRUE
                 );
 
-                // クールタイム短縮
                 DrawBox(
-                    780, 280, 980, 480,
-                    GetColor(35, 60, 100), TRUE
+                    560, 430, 820, 700,
+                    GetColor(220, 90, 100),
+                    FALSE
                 );
-                DrawFormatString(
-                    810, 330,
-                    GetColor(170, 210, 255),
-                    "COOLDOWN -0.5s"
+
+                DrawString(
+                    620, 500,
+                    "ATTACK",
+                    GetColor(255, 180, 180)
+                );
+                DrawString(
+                    620, 560,
+                    "POWER +1",
+                    GetColor(255, 255, 255)
+                );
+                // BULLET SIZE CARD
+                DrawBox(
+                    840, 430, 1100, 700,
+                    GetColor(35, 85, 60),
+                    TRUE
+                );
+                DrawBox(
+                    840, 430, 1100, 700,
+                    GetColor(100, 220, 140),
+                    FALSE
+                );
+                DrawString(
+                    900, 500,
+                    "BULLET",
+                    GetColor(160, 255, 190)
+                );
+
+                DrawString(
+                    900, 560,
+                    "SIZE +0.3",
+                    GetColor(255, 255, 255)
+                );
+                // COOLDOWN CARD
+                DrawBox(
+                    1120, 430, 1380, 700,
+                    GetColor(35, 60, 100),
+                    TRUE
+                );
+
+                DrawBox(
+                    1120, 430, 1380, 700,
+                    GetColor(100, 150, 230),
+                    FALSE
+                );
+
+                DrawString(
+                    1170, 500,
+                    "COOLDOWN",
+                    GetColor(170, 210, 255)
+                );
+                DrawString(
+                    1170, 560,
+                    "-0.5 SEC",
+                    GetColor(255, 255, 255)
                 );
             }
 
 
-            bulletManager.DrawAll();
+            
         }
 
         // 描画結果を画面に反映

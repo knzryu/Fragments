@@ -497,3 +497,9 @@ int Boss::GetHP() const
 {
     return hp;
 }
+
+// Å‘åHP‚ğæ“¾
+int Boss::GetMaxHP() const
+{
+    return INITIAL_HP;
+}

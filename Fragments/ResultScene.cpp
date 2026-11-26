@@ -17,151 +17,78 @@ void ResultScene::Update()
 //リザルト画面の更新
 void ResultScene::Draw()
 {
-    // 画面全体を暗くする背景
+    // 背景
     DrawBox(
         0, 0, 1920, 1080,
         GetColor(10, 15, 30),
         TRUE
     );
 
-    //タイトル
+    // タイトル
     DrawString(
-        820, 100,
+        810, 150,
         "MISSION RESULT",
         GetColor(255, 80, 80)
     );
 
     DrawString(
-        850, 150,
+        862, 217,
         "GAME OVER",
         GetColor(255, 80, 80)
     );
 
-    // 結果表示パネル
+    // 結果パネル
     DrawBox(
-        400, 230, 1520, 480,
+        375, 315, 1545, 690,
         GetColor(25, 35, 55),
         TRUE
     );
 
     DrawBox(
-        400, 230, 1520, 480,
+        375, 315, 1545, 690,
         GetColor(80, 160, 200),
         FALSE
     );
 
-    // 走行距離
-    DrawString(
-        500, 280,
-        "DISTANCE",
-        GetColor(150, 200, 230)
-    );
-
-    DrawFormatString(
-        500, 330,
-        GetColor(255, 255, 255),
-        "%.1f m",
-        resultData.distance
-    );
-
     // 敵撃破数
     DrawString(
-        850, 280,
-        "DEFEATED",
+        585, 420,
+        "DEFEATED ENEMIES",
         GetColor(150, 200, 230)
     );
 
     DrawFormatString(
-        850, 330,
+        675, 525,
         GetColor(255, 255, 255),
         "%d",
         resultData.defeatedEnemyCount
     );
 
-    // 生存時間
+    // 走行距離
     DrawString(
-        1200, 280,
-        "SURVIVAL TIME",
+        1125, 420,
+        "DISTANCE",
         GetColor(150, 200, 230)
     );
 
     DrawFormatString(
-        1200, 330,
+        1185, 525,
         GetColor(255, 255, 255),
-        "%.1f sec",
-        resultData.survivalTime
+        "%.1f M",
+        resultData.distance
     );
 
-    // 獲得アイテム欄
-    DrawString(
-        450, 530,
-        "ACQUIRED ITEMS",
-        GetColor(100, 220, 255)
-    );
-
-    // アイテム表示用パネル
-    DrawBox(
-        400, 580, 1520, 850,
-        GetColor(20, 30, 45),
-        TRUE
-    );
-
-    DrawBox(
-        400, 580, 1520, 850,
-        GetColor(80, 160, 200),
-        FALSE
-    );
-
-    //アイテム表示用の空スロット
-    const int slotSize = 120;
-    const int slotGap = 25;
-
-    const int startX = 500;
-    const int startY = 640;
-
-    const int columCount = 6;
-
-    for (int i = 0; i < 6; i++)
-    {
-        int x = startX + i * (slotSize + slotGap);
-
-        DrawBox(
-            x, startY,
-            x + slotSize, startY + slotSize,
-            GetColor(35, 50, 70),
-            TRUE
-        );
-
-        DrawBox(
-            x, startY,
-            x + slotSize, startY + slotSize,
-            GetColor(90, 130, 160),
-            FALSE
-        );
-    }
-    //アイテムがない場合の表示
-    DrawString(
-        850, 790,
-        "NO ITEMS",
-        GetColor(120, 140, 160)
-    );
     // マウス位置
     int mouseX, mouseY;
     GetMousePoint(&mouseX, &mouseY);
 
-    // Retryボタン
+    // RETRYボタン
     bool retryHover =
-        mouseX >= 700 && mouseX <= 950 &&
-        mouseY >= 900 && mouseY <= 980;
+        mouseX >= 600 && mouseX <= 855 &&
+        mouseY >= 825 && mouseY <= 930;
 
-    // Titleボタン
-    bool titleHover =
-        mouseX >= 970 && mouseX <= 1220 &&
-        mouseY >= 900 && mouseY <= 980;
-
-    // Retryボタン描画
     DrawBox(
-        700, 900, 950, 980,
+        600, 825, 855, 930,
         retryHover
         ? GetColor(40, 150, 220)
         : GetColor(20, 80, 150),
@@ -169,14 +96,18 @@ void ResultScene::Draw()
     );
 
     DrawString(
-        790, 930,
-        " RETRY",
+        675, 862,
+        "RETRY",
         GetColor(255, 255, 255)
     );
 
-    // Titleボタン描画
+    // TITLEボタン
+    bool titleHover =
+        mouseX >= 1065 && mouseX <= 1320 &&
+        mouseY >= 825 && mouseY <= 930;
+
     DrawBox(
-        970, 900, 1220, 980,
+        1065, 825, 1320, 930,
         titleHover
         ? GetColor(40, 150, 220)
         : GetColor(20, 80, 150),
@@ -184,8 +115,8 @@ void ResultScene::Draw()
     );
 
     DrawString(
-        1060, 930,
-        " TITLE",
+        1147, 862,
+        "TITLE",
         GetColor(255, 255, 255)
     );
 }

@@ -22,7 +22,7 @@ private:
 
 	
     // ƒ{ƒX‚Ì‰ŠúHP
-    static constexpr int INITIAL_HP = 1;
+    static constexpr int INITIAL_HP = 10;
 
     int hp = INITIAL_HP;
 
@@ -127,6 +127,9 @@ public:
 
     // HP‚ğæ“¾
     int GetHP() const;
+
+    // Å‘åHP‚ğæ“¾
+    int GetMaxHP() const;
 
     // Œ»İ‚Ìs“®ó‘Ô‚ğæ“¾
     BossAction GetAction() const;

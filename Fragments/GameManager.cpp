@@ -177,7 +177,7 @@ bool GameManager::TryShot(const CourseManager& courseManager)
 	bulletManager.SpawnBullet(
 		player.GetCourseZ() + 1.0f,
 		player.GetLaneOffset(),
-		1.0f,
+		2.0f,// © ‚±‚±‚ª’e‚Ì‚‚³
 		player.GetBulletSize(),
 		courseManager
 	);
