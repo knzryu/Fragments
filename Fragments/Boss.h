@@ -22,7 +22,7 @@ private:
 
 	
     // ƒ{ƒX‚Ì‰ŠúHP
-    static constexpr int INITIAL_HP = 15;
+    static constexpr int INITIAL_HP = 10;
 
     // Œ»İ‚ÌÅ‘åHP
     int maxHP = INITIAL_HP;

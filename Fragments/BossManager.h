@@ -44,7 +44,7 @@ private:
 	int bossCount = 0;
 
 	// 最初のボスのHP
-	static constexpr int FIRST_BOSS_HP = 15;
+	static constexpr int FIRST_BOSS_HP = 10;
 
 	// ボス1体ごとのHP増加量
 	static constexpr int BOSS_HP_INCREMENT = 15;
