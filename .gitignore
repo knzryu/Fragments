@@ -381,3 +381,5 @@ Thumbs.db
 # NOTE:
 # Do NOT ignore Resource/, *.mv1, *.fbx, *.png, *.jpg, or other game assets.
 # Runtime assets must be committed so the project works on other PCs.
+# DxLib runtime log
+/Fragments/Log.txt
