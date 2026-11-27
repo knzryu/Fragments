@@ -13,7 +13,7 @@ private:
     //移動速度   constexprで初期値を定数にする
     static constexpr float INITIAL_FORWARD_SPEED = 30.0f;
     //左右
-    static constexpr float INITIAL_SIDE_SPEED = 5.5;
+    static constexpr float INITIAL_SIDE_SPEED = 5.8;
     //弾スピード
     static constexpr float INITIAL_BULLET_SPEED = 30.0f;
     //弾サイズ
@@ -21,7 +21,7 @@ private:
     // プレイヤーの能力値の初期値
     static constexpr int INITIAL_ATTACK_POWER = 1;
     //射撃クールタイム
-    static constexpr float INITIAL_SHOT_COOLDOWN = 4.0f;
+    static constexpr float INITIAL_SHOT_COOLDOWN = 3.5f;
     static constexpr float MIN_SHOT_COOLDOWN = 0.0f;
 
 
